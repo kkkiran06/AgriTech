@@ -78,6 +78,13 @@ def register():
         session['district'] = new_farmer['district']
         session['state'] = new_farmer['state']
 
+        # Real-time sync to Supabase Cloud Database
+        try:
+            from app.database.supabase_client import sync_farmer_to_supabase
+            sync_farmer_to_supabase(new_farmer)
+        except Exception:
+            pass
+
         flash(f"Welcome to KrishiMitra, {name}! Your registration was successful.", 'success')
         return redirect(url_for('main.dashboard'))
 
@@ -164,5 +171,12 @@ def profile():
             session['state'] = state
             flash("Your profile has been updated successfully!", 'success')
             farmer = get_current_farmer()
+
+            # Real-time sync profile update to Supabase
+            try:
+                from app.database.supabase_client import sync_farmer_to_supabase
+                sync_farmer_to_supabase(farmer)
+            except Exception:
+                pass
 
     return render_template('auth/profile.html', farmer=farmer, states=INDIAN_STATES_DISTRICTS)

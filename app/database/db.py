@@ -115,11 +115,14 @@ def get_db():
         if db_url and (db_url.startswith('postgresql://') or db_url.startswith('postgres://')):
             try:
                 import psycopg2
-                # Ensure sslmode=require for Supabase
+                # Ensure sslmode=require and quick timeout for Supabase
                 conn_url = db_url
                 if 'sslmode=' not in conn_url:
                     sep = '&' if '?' in conn_url else '?'
                     conn_url = f"{conn_url}{sep}sslmode=require"
+                if 'connect_timeout=' not in conn_url:
+                    sep = '&' if '?' in conn_url else '?'
+                    conn_url = f"{conn_url}{sep}connect_timeout=2"
 
                 pg_conn = psycopg2.connect(conn_url)
                 g.db = PostgresConnectionWrapper(pg_conn)
