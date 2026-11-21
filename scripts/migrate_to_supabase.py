@@ -171,7 +171,17 @@ def migrate():
         res = pg_cur.fetchone()
         existing_count = res['cnt'] if res else 0
 
-        if existing_count > 0:
+        if table == 'farmers':
+            # Sync any new farmers whose mobile number is not yet in Supabase
+            pg_cur.execute("SELECT mobile FROM farmers")
+            existing_mobiles = {r['mobile'] for r in pg_cur.fetchall()}
+            new_rows = [r for r in rows if r['mobile'] not in existing_mobiles]
+            if not new_rows:
+                print(f"  ✓ farmers: all {len(rows)} local farmers already exist in Supabase.")
+                continue
+            rows = new_rows
+            print(f"  - farmers: found {len(new_rows)} new farmer(s) to sync to Supabase...")
+        elif existing_count > 0:
             print(f"  - {table}: already has {existing_count} rows in Supabase. Skipping insert.")
             continue
 

@@ -1,6 +1,23 @@
 import os
 from flask import Flask
 
+def _load_env_file():
+    """Load variables from .env file into os.environ if present."""
+    base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+    env_path = os.path.join(base_dir, '.env')
+    if os.path.exists(env_path):
+        with open(env_path, 'r', encoding='utf-8') as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith('#') and '=' in line:
+                    key, val = line.split('=', 1)
+                    key = key.strip()
+                    val = val.strip().strip('"').strip("'")
+                    if key not in os.environ:
+                        os.environ[key] = val
+
+_load_env_file()
+
 def create_app(test_config=None):
     """Create and configure the KrishiMitra Flask application."""
     app = Flask(__name__, instance_relative_config=True)
