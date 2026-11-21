@@ -25,7 +25,7 @@
   <nav class="navbar navbar-expand-lg navbar-dark navbar-krishi sticky-top">
     <div class="container-fluid px-lg-4">
       <a class="navbar-brand" href="{{ url_for('main.home') }}">
-        <span class="fs-4">🌾</span>
+        <span class="fs-4">ðŸŒ¾</span>
         <span>KrishiMitra</span>
       </a>
       
@@ -68,6 +68,13 @@
           <li class="nav-item">
             <a class="nav-link" href="{{ url_for('schemes.index') }}">
               <i class="bi bi-award me-1"></i> Govt Schemes
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link position-relative" href="{{ url_for('plantdoctor.index') }}"
+               style="color:#ffd54f !important; font-weight:600;">
+              <i class="bi bi-search-heart me-1"></i> PlantDoctor AI
+              <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size:0.6rem;">NEW</span>
             </a>
           </li>
         </ul>
@@ -143,7 +150,7 @@
       <div class="row g-4">
         <div class="col-md-4">
           <h5 class="text-white fw-bold d-flex align-items-center gap-2">
-            <span>🌾</span> KrishiMitra
+            <span>ðŸŒ¾</span> KrishiMitra
           </h5>
           <p class="small text-secondary mb-3">
             Digital companion for Indian farmers. Providing easy, actionable agronomic advice, weather forecasts, market intelligence, and government subsidy information.
@@ -166,6 +173,7 @@
             <li><a href="{{ url_for('soil.index') }}"><i class="bi bi-chevron-right me-1"></i>NPK Fertilizer Calculator</a></li>
             <li><a href="{{ url_for('market.index') }}"><i class="bi bi-chevron-right me-1"></i>APMC Mandi Price Tracker</a></li>
             <li><a href="{{ url_for('schemes.index') }}"><i class="bi bi-chevron-right me-1"></i>Government Subsidies & Schemes</a></li>
+            <li><a href="{{ url_for('plantdoctor.index') }}" style="color:#ffd54f;"><i class="bi bi-search-heart me-1"></i>&#x1F52C; PlantDoctor AI</a></li>
           </ul>
         </div>
       </div>
@@ -187,3 +195,4 @@
   {% block extra_scripts %}{% endblock %}
 </body>
 </html>
+

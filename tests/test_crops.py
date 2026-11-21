@@ -42,10 +42,15 @@ def test_crops_catalog_and_filter(client):
     assert b"Cotton" in res_cash.data
     assert b"Sugarcane" in res_cash.data
 
-def test_crop_detail_view(client):
+def test_crop_detail_view(client, app):
     """Test single crop detail page returns accurate agronomic fields."""
-    # Crop 1 (Rice)
-    res = client.get('/crops/1')
+    # Dynamically look up an existing crop ID
+    from app.database.db import get_db
+    with app.app_context():
+        db = get_db()
+        crop = db.execute('SELECT id FROM crops LIMIT 1').fetchone()
+    crop_id = crop['id']
+    res = client.get(f'/crops/{crop_id}')
     assert res.status_code == 200
     assert b"Rice (Paddy)" in res.data
     assert b"Sowing &amp; Seed Preparation" in res.data or b"Sowing & Seed Preparation" in res.data

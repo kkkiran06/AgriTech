@@ -74,6 +74,22 @@ CREATE TABLE IF NOT EXISTS market_prices (
     updated_date TEXT NOT NULL
 );
 
+-- 7. PlantDoctor AI — Diagnosis History
+CREATE TABLE IF NOT EXISTS diagnosis_history (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    farmer_id INTEGER NOT NULL,
+    disease_name TEXT NOT NULL,
+    plant_name TEXT NOT NULL,
+    confidence_score REAL NOT NULL DEFAULT 0.0,
+    severity TEXT NOT NULL DEFAULT 'Unknown',
+    ai_mode TEXT NOT NULL DEFAULT 'demo',   -- 'ai' or 'demo'
+    symptoms_summary TEXT,
+    treatment_summary TEXT,
+    image_b64 TEXT,                          -- Compressed base64 thumbnail
+    diagnosed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (farmer_id) REFERENCES farmers(id) ON DELETE CASCADE
+);
+
 -- 6. Government Agricultural Schemes
 CREATE TABLE IF NOT EXISTS government_schemes (
     id INTEGER PRIMARY KEY AUTOINCREMENT,

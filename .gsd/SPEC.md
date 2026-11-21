@@ -73,6 +73,12 @@
 - **FR-E1**: Visual pest and disease encyclopedia with high-quality reference imagery.
 - **FR-E2**: Search and filter by crop name (e.g., Rice, Wheat, Cotton, Tomato, Potato) and pest/disease type (Fungal, Bacterial, Viral, Insect Pest).
 - **FR-E3**: Comprehensive profiles per ailment: Common Symptoms, Early Warning Signs, Cultural & Preventive Measures, Organic/Biological Remedies, and Recommended Chemical Formulations (with safe dosage warnings).
+- **FR-E4**: **PlantDoctor AI Pathologist (Camera & Upload)**:
+  - Mobile phone camera capture & local image upload.
+  - Deep Learning model (MobileNetV2 / PlantVillage 38 disease classes) providing disease identification with confidence scores.
+  - Comprehensive symptoms, organic remedies, and chemical treatment guidelines.
+  - Historical diagnosis archive per registered farmer.
+  - Automatic graceful fallback to deterministic demonstration simulation mode if model weights are offline.
 
 ### Module F: Agricultural Market Price Information (Mandi Rates)
 - **FR-F1**: Commodity price dashboard showing Commodity Name, Variety, Mandi/Market Name, State/District, Min Price, Max Price, and Modal Price (₹ per Quintal).

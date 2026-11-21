@@ -1,0 +1,382 @@
+{% extends 'base.html' %}
+{% block title %}PlantDoctor AI — KrishiMitra{% endblock %}
+
+{% block extra_head %}
+<style>
+  .plantdoctor-hero {
+    background: linear-gradient(135deg, #1a4731 0%, #2d7a4f 50%, #4caf50 100%);
+    padding: 3rem 0 2rem;
+    color: white;
+  }
+  .upload-zone {
+    border: 3px dashed #4caf50;
+    border-radius: 16px;
+    background: #f8fff9;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    min-height: 220px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .upload-zone:hover, .upload-zone.drag-over {
+    border-color: #2d7a4f;
+    background: #e8f5e9;
+    transform: scale(1.01);
+  }
+  .upload-zone.has-image {
+    border-color: #2d7a4f;
+    border-style: solid;
+  }
+  #preview-img {
+    max-height: 200px;
+    max-width: 100%;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+  }
+  .camera-box {
+    border-radius: 16px;
+    overflow: hidden;
+    background: #000;
+    min-height: 220px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  #camera-feed {
+    width: 100%;
+    border-radius: 16px;
+    display: none;
+  }
+  #camera-canvas { display: none; }
+  .mode-badge-ai   { background: linear-gradient(135deg, #1565c0, #42a5f5); }
+  .mode-badge-demo { background: linear-gradient(135deg, #e65100, #ffa726); }
+  .feature-card {
+    border: none;
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+    background: white;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+    transition: transform 0.2s;
+  }
+  .feature-card:hover { transform: translateY(-4px); }
+  .feature-icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
+  .tab-btn { border-radius: 50px; font-weight: 600; }
+  .tab-btn.active { background: #2d7a4f; color: white; border-color: #2d7a4f; }
+  .analyzing-spinner { display: none; }
+  .history-badge {
+    background: #fff3e0; color: #e65100;
+    border-radius: 50px; padding: 2px 10px; font-size: 0.8rem;
+    font-weight: 600;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Hero -->
+<div class="plantdoctor-hero">
+  <div class="container text-center">
+    <div class="d-flex align-items-center justify-content-center gap-3 mb-3">
+      <span style="font-size:3rem">🔬</span>
+      <div>
+        <h1 class="fw-bold mb-0">PlantDoctor AI</h1>
+        <p class="mb-0 opacity-75">AI-Powered Plant Disease Detection</p>
+      </div>
+    </div>
+
+    <!-- AI Mode Badge -->
+    {% if ai_mode == 'ai' %}
+      <span class="badge mode-badge-ai px-3 py-2 fs-6">
+        <i class="bi bi-cpu-fill me-1"></i> AI Model Active — MobileNetV2 (PlantVillage 38 Classes)
+      </span>
+    {% else %}
+      <span class="badge mode-badge-demo px-3 py-2 fs-6">
+        <i class="bi bi-flask me-1"></i> Demo Simulation Mode — Hackathon Demonstration
+      </span>
+    {% endif %}
+
+    {% if farmer and history_count > 0 %}
+    <div class="mt-3">
+      <a href="{{ url_for('plantdoctor.history') }}" class="btn btn-outline-light btn-sm">
+        <i class="bi bi-clock-history me-1"></i>
+        View Your <span class="history-badge">{{ history_count }}</span> Past Diagnoses
+      </a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="container py-4">
+
+  <!-- How It Works -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="feature-card">
+        <div class="feature-icon">📸</div>
+        <div class="fw-semibold small">1. Upload or Capture</div>
+        <div class="text-muted" style="font-size:0.78rem">Photo of affected leaf</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="feature-card">
+        <div class="feature-icon">🧠</div>
+        <div class="fw-semibold small">2. AI Analysis</div>
+        <div class="text-muted" style="font-size:0.78rem">MobileNetV2 inference</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="feature-card">
+        <div class="feature-icon">🩺</div>
+        <div class="fw-semibold small">3. Get Diagnosis</div>
+        <div class="text-muted" style="font-size:0.78rem">Disease name + confidence</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="feature-card">
+        <div class="feature-icon">💊</div>
+        <div class="fw-semibold small">4. Treatment Plan</div>
+        <div class="text-muted" style="font-size:0.78rem">Organic + chemical options</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Upload Card -->
+  <div class="card border-0 shadow-sm" style="border-radius:16px;">
+    <div class="card-body p-4">
+
+      <!-- Tab switcher -->
+      <div class="d-flex gap-2 mb-4">
+        <button class="btn btn-outline-success tab-btn active" id="tab-upload" onclick="switchTab('upload')">
+          <i class="bi bi-upload me-1"></i> Upload Photo
+        </button>
+        <button class="btn btn-outline-success tab-btn" id="tab-camera" onclick="switchTab('camera')">
+          <i class="bi bi-camera-fill me-1"></i> Use Camera
+        </button>
+      </div>
+
+      <!-- ═══ UPLOAD TAB ═══ -->
+      <div id="panel-upload">
+        <form method="POST" action="{{ url_for('plantdoctor.diagnose') }}" enctype="multipart/form-data" id="upload-form">
+          <input type="hidden" name="source" value="upload">
+
+          <div class="upload-zone" id="upload-zone" onclick="document.getElementById('plant-image-input').click()">
+            <div id="upload-placeholder" class="text-center p-3">
+              <i class="bi bi-cloud-arrow-up text-success" style="font-size:3.5rem;"></i>
+              <p class="fw-semibold text-success mt-2 mb-1">Click or Drag & Drop</p>
+              <p class="text-muted small mb-2">JPG, PNG, WEBP · Max 10 MB</p>
+              <p class="text-muted" style="font-size:0.8rem">🌿 Best results: single leaf, good lighting, plain background</p>
+            </div>
+            <div id="upload-preview" class="text-center p-2" style="display:none;">
+              <img id="preview-img" src="" alt="Preview">
+              <p class="text-success mt-2 small fw-semibold" id="preview-name"></p>
+              <button type="button" class="btn btn-sm btn-outline-secondary mt-1" onclick="clearUpload(event)">
+                <i class="bi bi-x"></i> Change Image
+              </button>
+            </div>
+          </div>
+
+          <input type="file" id="plant-image-input" name="plant_image"
+                 accept="image/*" class="d-none" onchange="previewUpload(this)">
+
+          <div class="mt-3 text-center">
+            <button type="submit" class="btn btn-success btn-lg px-5 fw-bold" id="diagnose-btn" disabled>
+              <span class="analyzing-spinner spinner-border spinner-border-sm me-2" id="upload-spinner"></span>
+              <i class="bi bi-search-heart me-2" id="diagnose-icon"></i>
+              Diagnose My Plant
+            </button>
+            <p class="text-muted mt-2" style="font-size:0.8rem">
+              <i class="bi bi-shield-check text-success me-1"></i>
+              Images are processed locally and not stored permanently
+            </p>
+          </div>
+        </form>
+      </div>
+
+      <!-- ═══ CAMERA TAB ═══ -->
+      <div id="panel-camera" style="display:none;">
+        <form method="POST" action="{{ url_for('plantdoctor.diagnose') }}" id="camera-form">
+          <input type="hidden" name="source" value="camera">
+          <input type="hidden" name="camera_image_data" id="camera-image-data">
+
+          <div class="camera-box mb-3" id="camera-box">
+            <div class="text-white text-center p-4" id="camera-placeholder">
+              <i class="bi bi-camera-fill" style="font-size:4rem; opacity:0.5;"></i>
+              <p class="mt-2 opacity-75">Click "Start Camera" to begin</p>
+            </div>
+            <video id="camera-feed" autoplay playsinline></video>
+          </div>
+          <canvas id="camera-canvas" width="640" height="480"></canvas>
+
+          <div id="camera-captured-preview" class="text-center mb-3" style="display:none;">
+            <img id="captured-img" src="" alt="Captured" style="max-height:200px;border-radius:10px;box-shadow:0 4px 15px rgba(0,0,0,0.15);">
+            <p class="text-success mt-2 fw-semibold small">📸 Image captured! Ready for diagnosis.</p>
+          </div>
+
+          <div class="d-flex justify-content-center gap-2 flex-wrap">
+            <button type="button" class="btn btn-outline-success" id="btn-start-cam" onclick="startCamera()">
+              <i class="bi bi-camera-video me-1"></i> Start Camera
+            </button>
+            <button type="button" class="btn btn-success d-none" id="btn-capture" onclick="capturePhoto()">
+              <i class="bi bi-camera me-1"></i> Capture Photo
+            </button>
+            <button type="button" class="btn btn-outline-secondary d-none" id="btn-retake" onclick="retakePhoto()">
+              <i class="bi bi-arrow-counterclockwise me-1"></i> Retake
+            </button>
+            <button type="submit" class="btn btn-primary btn-lg fw-bold d-none px-4" id="btn-cam-diagnose">
+              <i class="bi bi-search-heart me-2"></i> Diagnose
+            </button>
+          </div>
+        </form>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Supported Crops -->
+  <div class="card border-0 shadow-sm mt-4" style="border-radius:16px;">
+    <div class="card-body p-4">
+      <h5 class="fw-bold text-success mb-3">
+        <i class="bi bi-check-circle-fill me-2"></i>Supported Plants (PlantVillage Dataset)
+      </h5>
+      <div class="d-flex flex-wrap gap-2">
+        {% for plant, emoji in [
+          ('Tomato','🍅'),('Potato','🥔'),('Corn/Maize','🌽'),('Apple','🍎'),
+          ('Grape','🍇'),('Orange/Citrus','🍊'),('Peach','🍑'),('Cherry','🍒'),
+          ('Bell Pepper','🫑'),('Strawberry','🍓'),('Squash','🎃'),
+          ('Soybean','🌿'),('Raspberry','🫐'),('Blueberry','🫐')
+        ] %}
+        <span class="badge bg-light text-dark border px-3 py-2 fs-6">{{ emoji }} {{ plant }}</span>
+        {% endfor %}
+      </div>
+      <p class="text-muted mt-3 mb-0 small">
+        <i class="bi bi-info-circle me-1"></i>
+        For best results, photograph a single leaf in clear daylight with the affected area clearly visible.
+      </p>
+    </div>
+  </div>
+
+  {% if not farmer %}
+  <div class="alert alert-info border-0 shadow-sm mt-4" style="border-radius:12px;">
+    <i class="bi bi-person-check-fill me-2"></i>
+    <strong>Login to save your diagnosis history.</strong>
+    <a href="{{ url_for('auth.login') }}" class="btn btn-sm btn-primary ms-2">Login</a>
+    <a href="{{ url_for('auth.register') }}" class="btn btn-sm btn-outline-primary ms-1">Register Free</a>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// ── Tab switching ─────────────────────────────────────────
+function switchTab(tab) {
+  document.getElementById('panel-upload').style.display = tab === 'upload' ? '' : 'none';
+  document.getElementById('panel-camera').style.display = tab === 'camera' ? '' : 'none';
+  document.getElementById('tab-upload').classList.toggle('active', tab === 'upload');
+  document.getElementById('tab-camera').classList.toggle('active', tab === 'camera');
+  if (tab !== 'camera') stopCamera();
+}
+
+// ── Upload preview ────────────────────────────────────────
+function previewUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById('preview-img').src = e.target.result;
+    document.getElementById('preview-name').textContent = `📁 ${file.name} (${(file.size/1024).toFixed(0)} KB)`;
+    document.getElementById('upload-placeholder').style.display = 'none';
+    document.getElementById('upload-preview').style.display = '';
+    document.getElementById('upload-zone').classList.add('has-image');
+    document.getElementById('diagnose-btn').disabled = false;
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearUpload(e) {
+  e.stopPropagation();
+  document.getElementById('plant-image-input').value = '';
+  document.getElementById('upload-placeholder').style.display = '';
+  document.getElementById('upload-preview').style.display = 'none';
+  document.getElementById('upload-zone').classList.remove('has-image');
+  document.getElementById('diagnose-btn').disabled = true;
+}
+
+// Drag & drop
+const zone = document.getElementById('upload-zone');
+zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+zone.addEventListener('drop', e => {
+  e.preventDefault();
+  zone.classList.remove('drag-over');
+  const dt = e.dataTransfer;
+  if (dt.files.length) {
+    document.getElementById('plant-image-input').files = dt.files;
+    previewUpload(document.getElementById('plant-image-input'));
+  }
+});
+
+// Show spinner on submit
+document.getElementById('upload-form').addEventListener('submit', () => {
+  document.getElementById('upload-spinner').style.display = 'inline-block';
+  document.getElementById('diagnose-icon').style.display = 'none';
+  document.getElementById('diagnose-btn').disabled = true;
+  document.getElementById('diagnose-btn').textContent = '';
+  document.getElementById('diagnose-btn').insertAdjacentHTML('afterbegin',
+    '<span class="spinner-border spinner-border-sm me-2"></span>Analysing…');
+});
+
+// ── Camera ────────────────────────────────────────────────
+let stream = null;
+
+async function startCamera() {
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
+    const video = document.getElementById('camera-feed');
+    video.srcObject = stream;
+    video.style.display = 'block';
+    document.getElementById('camera-placeholder').style.display = 'none';
+    document.getElementById('btn-start-cam').classList.add('d-none');
+    document.getElementById('btn-capture').classList.remove('d-none');
+  } catch(err) {
+    alert('Camera access denied or not available. Please use the Upload tab instead.\n\n' + err.message);
+  }
+}
+
+function capturePhoto() {
+  const video = document.getElementById('camera-feed');
+  const canvas = document.getElementById('camera-canvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width = video.videoWidth || 640;
+  canvas.height = video.videoHeight || 480;
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+  document.getElementById('camera-image-data').value = dataUrl;
+  document.getElementById('captured-img').src = dataUrl;
+  document.getElementById('camera-captured-preview').style.display = '';
+  document.getElementById('camera-feed').style.display = 'none';
+  document.getElementById('btn-capture').classList.add('d-none');
+  document.getElementById('btn-retake').classList.remove('d-none');
+  document.getElementById('btn-cam-diagnose').classList.remove('d-none');
+  stopCamera();
+}
+
+function retakePhoto() {
+  document.getElementById('camera-captured-preview').style.display = 'none';
+  document.getElementById('btn-retake').classList.add('d-none');
+  document.getElementById('btn-cam-diagnose').classList.add('d-none');
+  document.getElementById('btn-start-cam').classList.remove('d-none');
+  document.getElementById('camera-image-data').value = '';
+}
+
+function stopCamera() {
+  if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+}
+
+window.addEventListener('beforeunload', stopCamera);
+</script>
+{% endblock %}

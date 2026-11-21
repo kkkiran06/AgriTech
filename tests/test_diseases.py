@@ -35,9 +35,14 @@ def test_disease_filters(client):
     assert res_fungal.status_code == 200
     assert b"Rice Blast" in res_fungal.data
 
-def test_disease_detail_view(client):
+def test_disease_detail_view(client, app):
     """Test single disease detail page renders symptoms, organic and chemical remedies."""
-    res = client.get('/diseases/1')
+    from app.database.db import get_db
+    with app.app_context():
+        db = get_db()
+        disease = db.execute('SELECT id FROM diseases_pests LIMIT 1').fetchone()
+    disease_id = disease['id']
+    res = client.get(f'/diseases/{disease_id}')
     assert res.status_code == 200
     assert b"Rice Blast" in res.data
     assert b"Key Identification Symptoms" in res.data

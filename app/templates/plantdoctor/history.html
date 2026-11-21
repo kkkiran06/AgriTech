@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+{% block title %}Diagnosis History — PlantDoctor AI{% endblock %}
+
+{% block extra_head %}
+<style>
+  .history-hero {
+    background: linear-gradient(135deg, #1a4731, #2d7a4f);
+    color: white;
+    padding: 2rem 0;
+  }
+  .history-card {
+    border-radius: 12px;
+    border: none;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+    transition: transform 0.2s;
+  }
+  .history-card:hover { transform: translateY(-2px); }
+  .severity-critical { background:#d32f2f; color:white; }
+  .severity-high     { background:#f57c00; color:white; }
+  .severity-moderate { background:#fbc02d; color:#333; }
+  .severity-none     { background:#388e3c; color:white; }
+  .severity-unknown  { background:#757575; color:white; }
+  .thumb-img {
+    width: 70px; height: 70px; object-fit: cover;
+    border-radius: 8px; border: 2px solid #c8e6c9;
+  }
+  .thumb-placeholder {
+    width: 70px; height: 70px;
+    background: #e8f5e9; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2rem; border: 2px solid #c8e6c9;
+  }
+  .ai-badge   { background:#1565c0; color:white; font-size:0.7rem; }
+  .demo-badge { background:#e65100; color:white; font-size:0.7rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="history-hero">
+  <div class="container">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+      <div class="d-flex align-items-center gap-3">
+        <span style="font-size:2.5rem;">📋</span>
+        <div>
+          <h2 class="fw-bold mb-0">Diagnosis History</h2>
+          <p class="mb-0 opacity-75">
+            {{ farmer.name }}'s plant diagnoses · {{ records | length }} record{{ 's' if records | length != 1 }}
+          </p>
+        </div>
+      </div>
+      <a href="{{ url_for('plantdoctor.index') }}" class="btn btn-warning fw-bold text-dark">
+        <i class="bi bi-camera me-1"></i> New Diagnosis
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="container py-4">
+
+  {% if records %}
+  <div class="row g-3">
+    {% for rec in records %}
+    <div class="col-12">
+      <div class="card history-card">
+        <div class="card-body">
+          <div class="d-flex gap-3 align-items-start">
+
+            <!-- Thumbnail -->
+            <div class="flex-shrink-0">
+              {% if rec['image_b64'] %}
+              <img src="data:image/jpeg;base64,{{ rec['image_b64'][:5000] }}"
+                   alt="Plant" class="thumb-img" onerror="this.style.display='none'">
+              {% else %}
+              <div class="thumb-placeholder">🌿</div>
+              {% endif %}
+            </div>
+
+            <!-- Main info -->
+            <div class="flex-grow-1">
+              <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-2">
+                <div>
+                  <h5 class="fw-bold mb-0">{{ rec['disease_name'] }}</h5>
+                  <span class="text-muted small">
+                    <i class="bi bi-flower1 me-1"></i>{{ rec['plant_name'] }}
+                  </span>
+                </div>
+                <div class="d-flex flex-wrap gap-1 align-items-center">
+                  {% set sev = (rec['severity'] or 'unknown') | lower %}
+                  <span class="badge px-2 py-1
+                    {% if sev == 'critical' %}severity-critical
+                    {% elif sev == 'high' %}severity-high
+                    {% elif sev == 'moderate' %}severity-moderate
+                    {% elif sev == 'none' %}severity-none
+                    {% else %}severity-unknown{% endif %}">
+                    {{ rec['severity'] or 'Unknown' }}
+                  </span>
+                  <span class="badge px-2 py-1
+                    {% if rec['ai_mode'] == 'ai' %}ai-badge{% else %}demo-badge{% endif %}">
+                    {{ 'AI Model' if rec['ai_mode'] == 'ai' else 'Demo' }}
+                  </span>
+                  <span class="badge bg-success bg-opacity-25 text-success px-2 py-1">
+                    {{ rec['confidence_score'] }}% confident
+                  </span>
+                </div>
+              </div>
+
+              <p class="text-muted small mb-2">
+                <strong>Symptoms:</strong>
+                {{ (rec['symptoms_summary'] or '')[:180] }}{% if (rec['symptoms_summary'] or '') | length > 180 %}…{% endif %}
+              </p>
+
+              <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                <small class="text-muted">
+                  <i class="bi bi-calendar3 me-1"></i>
+                  {{ rec['diagnosed_at'] }}
+                </small>
+                <form method="POST"
+                      action="{{ url_for('plantdoctor.delete_history', record_id=rec['id']) }}"
+                      onsubmit="return confirm('Delete this diagnosis record?')">
+                  <button class="btn btn-sm btn-outline-danger">
+                    <i class="bi bi-trash3 me-1"></i>Delete
+                  </button>
+                </form>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% else %}
+  <div class="text-center py-5">
+    <span style="font-size:5rem;">🌱</span>
+    <h4 class="mt-3 text-muted">No diagnoses yet</h4>
+    <p class="text-muted">Upload your first plant image to get an AI diagnosis.</p>
+    <a href="{{ url_for('plantdoctor.index') }}" class="btn btn-success btn-lg fw-bold mt-2">
+      <i class="bi bi-camera me-2"></i>Start Diagnosing
+    </a>
+  </div>
+  {% endif %}
+
+  <div class="card border-0 mt-4 p-3" style="border-radius:12px; background:#fff8e1;">
+    <div class="small text-muted">
+      <i class="bi bi-info-circle-fill text-warning me-1"></i>
+      <strong>Disclaimer:</strong> AI diagnoses are for guidance only. For confirmed identification of crop diseases,
+      always consult a certified agronomist or your local Krishi Vigyan Kendra (KVK).
+    </div>
+  </div>
+
+</div>
+{% endblock %}

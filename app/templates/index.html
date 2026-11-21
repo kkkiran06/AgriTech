@@ -30,6 +30,9 @@
               <i class="bi bi-box-arrow-in-right me-2"></i> Farmer Login
             </a>
           {% endif %}
+          <a href="{{ url_for('plantdoctor.index') }}" class="btn btn-danger btn-lg px-4 shadow text-white fw-bold">
+            <i class="bi bi-camera-fill me-2"></i> PlantDoctor AI Camera
+          </a>
           <a href="{{ url_for('crops.index') }}" class="btn btn-light btn-lg px-4 text-success fw-semibold">
             <i class="bi bi-flower1 me-2"></i> Explore Crops
           </a>
@@ -162,6 +165,23 @@
           </p>
           <a href="{{ url_for('schemes.index') }}" class="text-success fw-semibold text-decoration-none small">
             Browse Schemes <i class="bi bi-arrow-right ms-1"></i>
+          </a>
+        </div>
+      </div>
+
+      <!-- 7. PlantDoctor AI -->
+      <div class="col-md-12 col-lg-4">
+        <div class="farm-card p-4 h-100 border border-success" style="background: linear-gradient(135deg, #f1f8e9 0%, #ffffff 100%);">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="fs-1 text-danger">🔬</div>
+            <span class="badge bg-danger">AI Camera</span>
+          </div>
+          <h5 class="fw-bold text-dark">PlantDoctor AI Diagnosis</h5>
+          <p class="text-muted small">
+            Take a picture of any affected crop leaf using your camera or upload an image. Instant AI deep learning diagnosis with organic & chemical cure steps.
+          </p>
+          <a href="{{ url_for('plantdoctor.index') }}" class="text-success fw-bold text-decoration-none small">
+            Launch PlantDoctor <i class="bi bi-arrow-right ms-1"></i>
           </a>
         </div>
       </div>

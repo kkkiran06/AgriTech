@@ -40,8 +40,9 @@ Wave 3 (Specialized Farm Services):
   Phase 6: Agricultural Market Prices (✅ Complete)
   Phase 7: Government Schemes (✅ Complete)
 
-Wave 4 (Quality & Delivery):
+Wave 4 (Quality & Advanced AI Services):
   Phase 8: Testing, Integration, and Final Documentation (✅ Complete)
+  Phase 9: PlantDoctor AI — Image & Camera Disease Detection (✅ Complete)
 ```
 
 ---
@@ -58,3 +59,4 @@ Wave 4 (Quality & Delivery):
 | **6** | Market Prices (Mandi Rates) | 3 | ✅ Complete | 1/1 | 1/1 |
 | **7** | Government Schemes | 3 | ✅ Complete | 1/1 | 1/1 |
 | **8** | Testing, Polish & Documentation | 4 | ✅ Complete | 1/1 | 1/1 |
+| **9** | PlantDoctor AI Camera Disease Diagnosis | 4 | ✅ Complete | 1/1 | 1/1 |

@@ -27,6 +27,7 @@ def create_app(test_config=None):
     from app.routes.diseases import diseases_bp
     from app.routes.market import market_bp
     from app.routes.schemes import schemes_bp
+    from app.routes.plantdoctor import plantdoctor_bp
 
     app.register_blueprint(main_bp)
     app.register_blueprint(auth_bp, url_prefix='/auth')
@@ -36,5 +37,12 @@ def create_app(test_config=None):
     app.register_blueprint(diseases_bp, url_prefix='/diseases')
     app.register_blueprint(market_bp, url_prefix='/market')
     app.register_blueprint(schemes_bp, url_prefix='/schemes')
+    app.register_blueprint(plantdoctor_bp, url_prefix='/plantdoctor')
+
+    # Configure upload folder
+    upload_folder = os.path.join(app.root_path, 'static', 'uploads')
+    os.makedirs(upload_folder, exist_ok=True)
+    app.config['UPLOAD_FOLDER'] = upload_folder
+    app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024  # 10 MB limit
 
     return app

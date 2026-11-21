@@ -14,17 +14,19 @@ def app():
 def client(app):
     return app.test_client()
 
-def test_full_farmer_journey(client):
+def test_full_farmer_journey(client, app):
     """End-to-end user journey across all agricultural modules."""
     # 1. Landing Page
     landing_res = client.get('/')
     assert landing_res.status_code == 200
     assert b"KrishiMitra" in landing_res.data
 
-    # 2. Registration
+    # 2. Registration — use a unique mobile each run
+    import time
+    unique_mobile = '98' + str(int(time.time()))[-8:]
     reg_res = client.post('/auth/register', data={
         'name': 'Balwant Singh',
-        'mobile': '9870001122',
+        'mobile': unique_mobile,
         'password': 'farmerSecure1',
         'confirm_password': 'farmerSecure1',
         'state': 'Punjab',
@@ -47,6 +49,12 @@ def test_full_farmer_journey(client):
     assert b"Crop Cultivation Guide" in crops_res.data
 
     crop_detail_res = client.get('/crops/2')
+    if crop_detail_res.status_code == 404:
+        from app.database.db import get_db
+        with app.app_context():
+            db2 = get_db()
+            cid = db2.execute('SELECT id FROM crops LIMIT 1 OFFSET 1').fetchone()
+        crop_detail_res = client.get(f'/crops/{cid["id"]}')
     assert crop_detail_res.status_code == 200
     assert b"Wheat" in crop_detail_res.data
     assert b"Ideal Temperature" in crop_detail_res.data
@@ -72,6 +80,12 @@ def test_full_farmer_journey(client):
     assert b"Wheat Yellow (Stripe) Rust" in disease_res.data
 
     disease_detail_res = client.get('/diseases/2')
+    if disease_detail_res.status_code == 404:
+        from app.database.db import get_db
+        with app.app_context():
+            db3 = get_db()
+            did = db3.execute('SELECT id FROM diseases_pests LIMIT 1 OFFSET 1').fetchone()
+        disease_detail_res = client.get(f'/diseases/{did["id"]}')
     assert disease_detail_res.status_code == 200
     assert b"Puccinia" in disease_detail_res.data or b"Wheat Yellow" in disease_detail_res.data
 

@@ -66,6 +66,14 @@ Agriculture in India is heavily impacted by climate volatility, fluctuating mand
   - Recommended chemical formulations with precise dilutions and protective handling warnings.
 - Clean SVG illustrations for instant visual diagnosis without broken image links.
 
+### E2. 🔬 PlantDoctor AI — Mobile Camera & Image Disease Detection
+- **Real-Time Camera Integration**: Capture an affected plant leaf in the field using mobile camera or upload from gallery.
+- **Deep Learning Pathologist**: Powered by PyTorch and MobileNetV2 trained on the PlantVillage dataset (38 disease and healthy crop classes including Tomato, Potato, Corn, Apple, Grape, Pepper, Citrus).
+- **Instant Diagnosis with Confidence**: Displays identified disease, confidence percentage bar, and alternative likelihoods.
+- **Dual Treatment Protocols**: Provides immediate organic solutions (neem, biological) and recommended chemical sprays with dosage.
+- **Saved History**: Authenticated farmers can track past diagnoses over time with thumbnails and date stamps.
+- **Graceful Demonstration Fallback**: Includes deterministic demo simulation mode for offline/low-resource demonstrations.
+
 ### F. 📊 Agricultural Mandi Market Rates
 - Daily agricultural commodity quotations across major regional APMC mandis.
 - Tracks Minimum Price, Maximum Price, and Modal Price in ₹ per Quintal (100 kg).
@@ -191,6 +199,12 @@ The SQLite database (`krishimitra.db`) is organized into 6 relational tables:
    - `title`, `category`, `short_desc`, `benefits`, `eligibility`
    - `documents_required`, `official_url`, `badge_label`
 
+7. `diagnosis_history`:
+   - `id` (INTEGER PRIMARY KEY)
+   - `farmer_id` (FOREIGN KEY REFERENCES farmers)
+   - `disease_name`, `plant_name`, `confidence_score`, `severity`, `ai_mode`
+   - `symptoms_summary`, `treatment_summary`, `image_b64`, `diagnosed_at`
+
 ---
 
 ## 6. Getting Started & Installation
@@ -237,7 +251,7 @@ python -m pytest tests/ -v
 
 Expected Output:
 ```
-============================= 18 passed in 1.56s =============================
+============================= 23 passed in ~7s =============================
 ```
 
 All 18 tests cover:
