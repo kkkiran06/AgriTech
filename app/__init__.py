@@ -9,6 +9,7 @@ def create_app(test_config=None):
     app.config.from_mapping(
         SECRET_KEY=os.environ.get('SECRET_KEY', 'krishimitra-dev-secret-key-2026'),
         DATABASE=os.path.join(app.root_path, '..', 'krishimitra.db'),
+        DATABASE_URL=os.environ.get('DATABASE_URL', None),
     )
 
     if test_config is not None:

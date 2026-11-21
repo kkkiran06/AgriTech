@@ -101,7 +101,7 @@ Agriculture in India is heavily impacted by climate volatility, fluctuating mand
 |---|---|
 | **Frontend** | HTML5, CSS3 (Agricultural Theme Palette), Bootstrap 5.3, Bootstrap Icons, Vanilla JavaScript |
 | **Backend** | Python 3.10+ / 3.14, Flask Web Framework (Modular Blueprints, Jinja2 Templates), Werkzeug Security |
-| **Database** | SQLite3 (Embedded zero-configuration file database `krishimitra.db`) |
+| **Database** | Supabase PostgreSQL (Live Cloud Database) + SQLite3 (Local fallback & offline testing) |
 | **External APIs** | Open-Meteo REST API (Open-access weather data) + Curated APMC Mandi Benchmark Dataset |
 | **Testing** | Pytest 8.x/9.x (Unit, Functional, and End-to-End Integration Tests) |
 | **Tooling** | VS Code, Git, GitHub |
