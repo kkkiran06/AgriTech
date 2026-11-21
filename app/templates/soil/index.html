@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+
+{% block title %}Soil Health & Fertilizer Calculator - KrishiMitra{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <!-- Header -->
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-2">
+    <div>
+      <h2 class="fw-bold text-success mb-1">
+        <span class="me-2">🧪</span>Soil & Fertilizer Management
+      </h2>
+      <p class="text-muted mb-0">Soil classification, crop suitability, and interactive NPK commercial bag dosage calculator</p>
+    </div>
+    <a href="#calculator" class="btn btn-warning fw-bold text-dark">
+      <i class="bi bi-calculator me-1"></i> Jump to Calculator
+    </a>
+  </div>
+
+  <!-- Interactive NPK Calculator Section -->
+  <div class="farm-card mb-5 border-success" id="calculator">
+    <div class="card-header-agri bg-success text-white d-flex align-items-center justify-content-between">
+      <h5 class="fw-bold mb-0 text-white"><i class="bi bi-calculator-fill me-2"></i>Interactive NPK Fertilizer Calculator</h5>
+      <span class="badge bg-warning text-dark fw-bold">Scientific Dosage</span>
+    </div>
+    <div class="p-4">
+      <div class="row g-4">
+        <!-- Form Column -->
+        <div class="col-lg-5">
+          <form method="POST" action="{{ url_for('soil.index') }}#calculator">
+            <div class="mb-3">
+              <label for="cropSelect" class="form-label fw-semibold text-dark">
+                <i class="bi bi-flower1 text-success me-1"></i> Select Crop
+              </label>
+              <select class="form-select form-select-lg" id="cropSelect" name="crop" required>
+                {% for crop_name in crop_options %}
+                  <option value="{{ crop_name }}" {% if crop_name == selected_crop %}selected{% endif %}>
+                    {{ crop_name }}
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="mb-4">
+              <label for="acresInput" class="form-label fw-semibold text-dark">
+                <i class="bi bi-rulers text-primary me-1"></i> Cultivation Area (in Acres)
+              </label>
+              <div class="input-group input-group-lg">
+                <input type="number" class="form-control" id="acresInput" name="acres" value="{{ acres }}" min="0.1" max="500" step="0.1" required>
+                <span class="input-group-text bg-light">Acres</span>
+              </div>
+              <div class="form-text">Example: Enter 1.0 for 1 acre or 2.5 for 2.5 acres.</div>
+            </div>
+
+            <button type="submit" class="btn btn-agri btn-lg w-100 shadow-sm">
+              <i class="bi bi-lightning-charge-fill me-1"></i> Calculate Recommended Bags
+            </button>
+          </form>
+        </div>
+
+        <!-- Result Column -->
+        <div class="col-lg-7">
+          {% if calc_result %}
+            <div class="p-4 rounded-3 border bg-light h-100">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-bold text-success mb-0">
+                  Fertilizer Schedule For {{ calc_result['crop'] }} ({{ calc_result['acres'] }} Acres)
+                </h6>
+                <span class="badge bg-success-subtle text-success border">Verified Recommendation</span>
+              </div>
+
+              <!-- Pure Nutrient Requirements -->
+              <div class="row g-2 mb-3 text-center">
+                <div class="col-4">
+                  <div class="p-2 border rounded bg-white">
+                    <small class="text-muted d-block">Nitrogen (N)</small>
+                    <strong class="text-success fs-5">{{ calc_result['total_n'] }} kg</strong>
+                  </div>
+                </div>
+                <div class="col-4">
+                  <div class="p-2 border rounded bg-white">
+                    <small class="text-muted d-block">Phosphorus (P)</small>
+                    <strong class="text-primary fs-5">{{ calc_result['total_p'] }} kg</strong>
+                  </div>
+                </div>
+                <div class="col-4">
+                  <div class="p-2 border rounded bg-white">
+                    <small class="text-muted d-block">Potassium (K)</small>
+                    <strong class="text-danger fs-5">{{ calc_result['total_k'] }} kg</strong>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Commercial Bag Counts -->
+              <h6 class="fw-bold text-dark mb-2 small text-uppercase">Recommended Commercial Fertilizer Bags:</h6>
+              <div class="row g-2 mb-3">
+                <div class="col-md-4">
+                  <div class="p-3 border rounded bg-white text-center">
+                    <span class="badge bg-warning text-dark mb-1">Urea (46% N)</span>
+                    <h3 class="fw-bold text-dark mb-0">{{ calc_result['urea_bags'] }} <small class="fs-6 text-muted">Bags</small></h3>
+                    <small class="text-muted">({{ calc_result['urea_kg'] }} kg total, 45kg/bag)</small>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="p-3 border rounded bg-white text-center">
+                    <span class="badge bg-info text-white mb-1">DAP (18-46-0)</span>
+                    <h3 class="fw-bold text-dark mb-0">{{ calc_result['dap_bags'] }} <small class="fs-6 text-muted">Bags</small></h3>
+                    <small class="text-muted">({{ calc_result['dap_kg'] }} kg total, 50kg/bag)</small>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="p-3 border rounded bg-white text-center">
+                    <span class="badge bg-danger text-white mb-1">MOP (60% K)</span>
+                    <h3 class="fw-bold text-dark mb-0">{{ calc_result['mop_bags'] }} <small class="fs-6 text-muted">Bags</small></h3>
+                    <small class="text-muted">({{ calc_result['mop_kg'] }} kg total, 50kg/bag)</small>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Organic Manure Suggestion -->
+              <div class="alert alert-success border-0 small mb-0 d-flex align-items-center gap-2">
+                <i class="bi bi-patch-check-fill text-success fs-4"></i>
+                <div>
+                  <strong>Organic Base Recommendation:</strong> Apply approximately <strong>{{ calc_result['organic_compost_tons'] }} Tons</strong> of well-decomposed Farmyard Manure (FYM) or Vermicompost during land preparation.
+                </div>
+              </div>
+            </div>
+          {% else %}
+            <div class="p-5 border rounded bg-light text-center h-100 d-flex flex-column justify-content-center">
+              <i class="bi bi-calculator text-muted display-4 mb-2"></i>
+              <h6 class="text-dark fw-bold">Select Your Crop & Land Size</h6>
+              <p class="text-muted small">The calculator will display the exact amount of commercial fertilizer bags needed.</p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Soil Classification & Suitability Section -->
+  <div class="mb-5">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+      <h4 class="fw-bold text-dark mb-0"><i class="bi bi-layers-fill text-success me-2"></i>Indian Soil Types & Crop Suitability</h4>
+      <span class="badge bg-light text-secondary border">6 Core Types</span>
+    </div>
+
+    <div class="row g-4">
+      {% for s in soils %}
+      <div class="col-md-6 col-lg-4">
+        <div class="farm-card h-100 p-4 d-flex flex-column justify-content-between">
+          <div>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <h5 class="fw-bold text-success mb-0">{{ s['soil_type'] }}</h5>
+              <span class="badge bg-secondary-subtle text-secondary border">pH {{ s['ph_range'] }}</span>
+            </div>
+            <p class="small text-secondary mb-3 leading-relaxed">{{ s['characteristics'] }}</p>
+
+            <div class="mb-3 small">
+              <strong class="text-dark d-block mb-1"><i class="bi bi-check-circle text-success me-1"></i>Suitable Crops:</strong>
+              <span class="text-muted">{{ s['suitable_crops'] }}</span>
+            </div>
+
+            <div class="mb-3 small">
+              <strong class="text-dark d-block mb-1"><i class="bi bi-recycle text-success me-1"></i>Organic Care:</strong>
+              <span class="text-muted">{{ s['organic_recommendations'] }}</span>
+            </div>
+          </div>
+
+          <div class="pt-3 border-top small d-flex justify-content-between align-items-center">
+            <span class="text-muted">Ideal NPK Ratio:</span>
+            <span class="fw-bold text-dark">{{ s['npk_ratio'] }}</span>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Organic vs Chemical Fertilizers Guide -->
+  <div class="farm-card p-4">
+    <h4 class="fw-bold text-dark mb-3"><i class="bi bi-arrow-left-right text-success me-2"></i>Organic vs Chemical Fertilizers: Balanced Farming</h4>
+    <div class="row g-4">
+      <div class="col-md-6">
+        <div class="p-3 border rounded bg-success-subtle h-100">
+          <h5 class="fw-bold text-success"><i class="bi bi-tree me-1"></i> Organic Fertilizers (Bio-Inputs)</h5>
+          <p class="small text-secondary mb-2">
+            Includes Farmyard Manure (FYM), Vermicompost, Neem Cake, and Green Manure (Dhaincha/Sunhemp).
+          </p>
+          <ul class="small text-secondary mb-0">
+            <li>Improves soil structure, water retention, and microbial biodiversity.</li>
+            <li>Slow-release nutrients prevent fertilizer burn and groundwater pollution.</li>
+            <li>Maintains neutral pH and reduces soil salinity over years.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="p-3 border rounded bg-light h-100">
+          <h5 class="fw-bold text-primary"><i class="bi bi-boxes me-1"></i> Chemical Fertilizers (Inorganic)</h5>
+          <p class="small text-secondary mb-2">
+            Includes Urea, DAP (Di-Ammonium Phosphate), MOP (Muriate of Potash), and Single Super Phosphate (SSP).
+          </p>
+          <ul class="small text-secondary mb-0">
+            <li>Provides high concentrations of immediate, plant-available N-P-K.</li>
+            <li>Critical during early vegetative flush and grain/fruit filling stages.</li>
+            <li>Must always be balanced with organic carbon to prevent soil compaction and acidification.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

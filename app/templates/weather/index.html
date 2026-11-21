@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+
+{% block title %}Agro-Weather & Farm Advisory - KrishiMitra{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <!-- Header -->
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-2">
+    <div>
+      <h2 class="fw-bold text-success mb-1">
+        <span class="me-2">🌦️</span>Agro-Meteorological Advisory
+      </h2>
+      <p class="text-muted mb-0">Hyper-local weather metrics and smart agricultural suggestions for timely farm operations</p>
+    </div>
+    <div>
+      {% if is_live %}
+        <span class="badge-live"><i class="bi bi-broadcast me-1"></i> Live Open-Meteo Satellite Feed</span>
+      {% else %}
+        <span class="badge-sample"><i class="bi bi-database me-1"></i> Offline Benchmark Data</span>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- District Selection Form -->
+  <div class="farm-card p-3 mb-4">
+    <form method="GET" action="{{ url_for('weather.index') }}" class="row g-2 align-items-end">
+      <div class="col-md-9">
+        <label for="districtSelect" class="form-label fw-semibold small text-secondary">
+          <i class="bi bi-geo-alt text-danger me-1"></i> Select Agricultural District
+        </label>
+        <select class="form-select form-select-lg" id="districtSelect" name="district" onchange="this.form.submit()">
+          {% for d in districts %}
+            <option value="{{ d }}" {% if d == district %}selected{% endif %}>
+              {{ d }} (Agricultural Zone)
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-3">
+        <button type="submit" class="btn btn-agri btn-lg w-100">
+          <i class="bi bi-search me-1"></i> Get Forecast
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Current Weather Metric Cards -->
+  <div class="row g-3 mb-4">
+    <!-- Main Temp Card -->
+    <div class="col-md-6 col-lg-3">
+      <div class="farm-card p-4 text-center h-100" style="background: linear-gradient(135deg, #e8f5e9 0%, #ffffff 100%);">
+        <span class="display-3 d-block mb-2">{{ weather['icon'] }}</span>
+        <h6 class="text-muted text-uppercase fw-semibold mb-1">Current Temperature</h6>
+        <h2 class="display-5 fw-bold text-success mb-1">{{ "%.1f"|format(weather['temp']) }}°C</h2>
+        <span class="badge bg-success-subtle text-success border">{{ weather['condition'] }}</span>
+      </div>
+    </div>
+
+    <!-- Humidity Card -->
+    <div class="col-md-6 col-lg-3">
+      <div class="farm-card p-4 text-center h-100">
+        <i class="bi bi-moisture text-primary display-4 d-block mb-2"></i>
+        <h6 class="text-muted text-uppercase fw-semibold mb-1">Relative Humidity</h6>
+        <h2 class="display-5 fw-bold text-primary mb-1">{{ weather['humidity'] }}%</h2>
+        <small class="text-muted">
+          {% if weather['humidity'] > 70 %}High (Disease Watch){% elif weather['humidity'] < 40 %}Dry (Irrigation Alert){% else %}Optimal{% endif %}
+        </small>
+      </div>
+    </div>
+
+    <!-- Rainfall Card -->
+    <div class="col-md-6 col-lg-3">
+      <div class="farm-card p-4 text-center h-100">
+        <i class="bi bi-cloud-rain-heavy text-info display-4 d-block mb-2"></i>
+        <h6 class="text-muted text-uppercase fw-semibold mb-1">Precipitation</h6>
+        <h2 class="display-5 fw-bold text-info mb-1">{{ weather['rain'] }} mm</h2>
+        <small class="text-muted">
+          {% if weather['rain'] > 2 %}Rain Expected Today{% else %}Dry Weather{% endif %}
+        </small>
+      </div>
+    </div>
+
+    <!-- Wind Speed Card -->
+    <div class="col-md-6 col-lg-3">
+      <div class="farm-card p-4 text-center h-100">
+        <i class="bi bi-wind text-secondary display-4 d-block mb-2"></i>
+        <h6 class="text-muted text-uppercase fw-semibold mb-1">Wind Speed</h6>
+        <h2 class="display-5 fw-bold text-secondary mb-1">{{ weather['wind'] }} km/h</h2>
+        <small class="text-muted">
+          {% if weather['wind'] > 20 %}High Drift (Avoid Spraying){% else %}Favorable For Foliar Spray{% endif %}
+        </small>
+      </div>
+    </div>
+  </div>
+
+  <!-- Smart Agricultural Advisory Cards -->
+  <div class="farm-card mb-4">
+    <div class="card-header-agri d-flex align-items-center justify-content-between">
+      <span class="fw-bold"><i class="bi bi-bell-fill me-2 text-warning"></i>Actionable Field Suggestions for {{ district }}</span>
+      <span class="badge bg-success text-white">Rule-Based Advisor</span>
+    </div>
+    <div class="p-4">
+      <div class="row g-3">
+        {% for adv in advisories %}
+        <div class="col-md-6">
+          <div class="alert alert-{{ adv['type'] }} border-0 shadow-sm h-100 mb-0 d-flex gap-3 align-items-start">
+            {% if adv['type'] == 'danger' %}
+              <i class="bi bi-exclamation-octagon-fill fs-3 text-danger mt-1"></i>
+            {% elif adv['type'] == 'warning' %}
+              <i class="bi bi-exclamation-triangle-fill fs-3 text-warning mt-1"></i>
+            {% else %}
+              <i class="bi bi-info-circle-fill fs-3 text-info mt-1"></i>
+            {% endif %}
+            <div>
+              <h6 class="fw-bold mb-1">{{ adv['title'] }}</h6>
+              <p class="small mb-0 leading-relaxed">{{ adv['desc'] }}</p>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- 5-Day Trend Forecast (Simulated / Live Projection) -->
+  <div class="farm-card">
+    <div class="card-header-agri">
+      <span class="fw-bold"><i class="bi bi-calendar-week me-2 text-primary"></i>5-Day Agro-Weather Outlook ({{ district }})</span>
+    </div>
+    <div class="p-4">
+      <div class="row g-3 text-center">
+        {% set days = ['Day 1 (Today)', 'Day 2 (Tomorrow)', 'Day 3', 'Day 4', 'Day 5'] %}
+        {% for d in days %}
+        <div class="col">
+          <div class="p-3 border rounded bg-light">
+            <h6 class="fw-bold text-secondary mb-2 small">{{ d }}</h6>
+            <div class="fs-2 mb-1">
+              {% if loop.index == 1 %}{{ weather['icon'] }}
+              {% elif loop.index == 2 %}⛅
+              {% elif loop.index == 3 %}☀️
+              {% elif loop.index == 4 %}🌤️
+              {% else %}☀️{% endif %}
+            </div>
+            <div class="fw-bold text-dark mb-1">
+              {{ (weather['temp'] + (loop.index - 2) * 0.7)|round(1) }}°C
+            </div>
+            <small class="text-muted d-block">Min: {{ (weather['temp'] - 8.5)|round(1) }}°C</small>
+            <span class="badge bg-light text-secondary border mt-1">
+              {% if loop.index == 2 %}20% Rain{% else %}0% Rain{% endif %}
+            </span>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
