@@ -1,12 +1,12 @@
 ---
 milestone: AgriTech Smart Agriculture Platform (KrishiMitra)
-version: 1.0.0
-updated: 2026-11-21
+version: 1.3.0
+updated: 2026-11-22
 ---
 
 # ROADMAP.md — Project Roadmap
 
-> **Current Phase:** Phase 8 - Testing, Integration, and Final Documentation
+> **Current Phase:** Phase 11 - Google Gemini Multimodal Vision AI (Leaf & Soil Scanning)
 > **Status:** ✅ Complete
 
 ## Must-Haves (from SPEC.md)
@@ -20,7 +20,11 @@ updated: 2026-11-21
 - [x] Visual crop disease and pest encyclopedia with symptoms and dual-remedy guidelines (organic & chemical).
 - [x] Mandi market prices tracker with multi-market price comparisons and explicit data attribution.
 - [x] Government schemes directory with eligibility criteria, subsidies, and official application links.
-- [x] Comprehensive verification test suite (18 tests passing 100%) and complete setup documentation (`README.md`).
+- [x] Comprehensive verification test suite (34 tests passing 100%) and complete setup documentation (`README.md`).
+- [x] PlantDoctor AI image and camera crop disease detection (MobileNetV2 + PlantVillage 38 classes).
+- [x] Multi-Language support for 7 major Indian regional languages (Hindi, Marathi, Telugu, Kannada, Tamil, Punjabi, Bengali) + English.
+- [x] Live Supabase cloud database integration with real-time HTTPS REST synchronization for newly registered farmers.
+- [x] Google Gemini Multimodal Vision AI integration for scanning both crop leaves (disease diagnosis) and farm soil (soil type, fertility, NPK dosage).
 
 ---
 
@@ -44,6 +48,7 @@ Wave 4 (Quality & Advanced Services):
   Phase 8: Testing, Integration, and Final Documentation (✅ Complete)
   Phase 9: PlantDoctor AI — Image & Camera Disease Detection (✅ Complete)
   Phase 10: Multi-Language & Regional Indian Languages Support (✅ Complete)
+  Phase 11: Google Gemini Multimodal Vision — Leaf & Soil Scanning (✅ Complete)
 ```
 
 ---
@@ -62,3 +67,4 @@ Wave 4 (Quality & Advanced Services):
 | **8** | Testing, Polish & Documentation | 4 | ✅ Complete | 1/1 | 1/1 |
 | **9** | PlantDoctor AI Camera Disease Diagnosis | 4 | ✅ Complete | 1/1 | 1/1 |
 | **10**| Multi-Language (7 Regional Indian Languages) | 4 | ✅ Complete | 1/1 | 1/1 |
+| **11**| Google Gemini Multimodal Vision (Leaf & Soil Scanning) | 4 | ✅ Complete | 1/1 | 1/1 |
