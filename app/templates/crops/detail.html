@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block title %}{{ crop['name'] }} Cultivation Guide - KrishiMitra{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <!-- Breadcrumb -->
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{{ url_for('main.dashboard') }}" class="text-success text-decoration-none">Dashboard</a></li>
+      <li class="breadcrumb-item"><a href="{{ url_for('crops.index') }}" class="text-success text-decoration-none">Crop Guide</a></li>
+      <li class="breadcrumb-item active" aria-current="page">{{ crop['name'] }}</li>
+    </ol>
+  </nav>
+
+  <!-- Crop Header Banner -->
+  <div class="farm-card p-4 mb-4" style="background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); border-left: 6px solid #2e7d32;">
+    <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+      <div class="d-flex align-items-center gap-3">
+        <span class="display-3">{{ crop['icon'] }}</span>
+        <div>
+          <h2 class="fw-bold text-success mb-1">{{ crop['name'] }}</h2>
+          <p class="text-secondary mb-1">
+            <strong>Botanical Name:</strong> <em>{{ crop['scientific_name'] }}</em>
+          </p>
+          <div class="d-flex gap-2">
+            <span class="badge bg-success text-white px-2 py-1">{{ crop['season'] }} Season</span>
+            <span class="badge bg-secondary text-white px-2 py-1">{{ crop['category'] }}</span>
+            <span class="badge bg-primary text-white px-2 py-1">{{ crop['duration_days'] }} Days to Maturity</span>
+          </div>
+        </div>
+      </div>
+      <div>
+        <a href="{{ url_for('soil.index') }}" class="btn btn-agri">
+          <i class="bi bi-calculator me-1"></i> Calculate Fertilizer For {{ crop['name'] }}
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Key Requirements Cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="farm-card p-3 text-center h-100">
+        <i class="bi bi-thermometer-sun text-danger fs-3 mb-1"></i>
+        <h6 class="fw-bold text-secondary mb-1">Ideal Temperature</h6>
+        <p class="fw-bold text-dark fs-5 mb-0">{{ crop['min_temp'] }}°C - {{ crop['max_temp'] }}°C</p>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="farm-card p-3 text-center h-100">
+        <i class="bi bi-cloud-rain-heavy text-info fs-3 mb-1"></i>
+        <h6 class="fw-bold text-secondary mb-1">Water Need</h6>
+        <p class="fw-bold text-dark fs-5 mb-0">{{ crop['rainfall_mm'] }}</p>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="farm-card p-3 text-center h-100">
+        <i class="bi bi-hourglass-split text-warning fs-3 mb-1"></i>
+        <h6 class="fw-bold text-secondary mb-1">Crop Duration</h6>
+        <p class="fw-bold text-dark fs-5 mb-0">{{ crop['duration_days'] }} Days</p>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="farm-card p-3 text-center h-100">
+        <i class="bi bi-layers text-success fs-3 mb-1"></i>
+        <h6 class="fw-bold text-secondary mb-1">Suitable Soil</h6>
+        <p class="small fw-semibold text-dark mb-0">{{ crop['suitable_soil'] }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Agronomic Guides -->
+  <div class="row g-4">
+    <!-- Left Column: Sowing & Irrigation -->
+    <div class="col-lg-6">
+      <!-- Sowing Guide -->
+      <div class="farm-card mb-4">
+        <div class="card-header-agri">
+          <h5 class="fw-bold mb-0"><i class="bi bi-seedling me-2 text-success"></i>1. Sowing & Seed Preparation</h5>
+        </div>
+        <div class="p-4">
+          <p class="text-secondary mb-0 leading-relaxed">{{ crop['sowing_guide'] }}</p>
+        </div>
+      </div>
+
+      <!-- Irrigation Guide -->
+      <div class="farm-card">
+        <div class="card-header-agri">
+          <h5 class="fw-bold mb-0"><i class="bi bi-droplet-half me-2 text-primary"></i>2. Water & Irrigation Management</h5>
+        </div>
+        <div class="p-4">
+          <p class="text-secondary mb-0 leading-relaxed">{{ crop['irrigation_guide'] }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Fertilizer & Harvesting -->
+    <div class="col-lg-6">
+      <!-- Fertilizer Guide -->
+      <div class="farm-card mb-4">
+        <div class="card-header-agri">
+          <h5 class="fw-bold mb-0"><i class="bi bi-boxes me-2 text-warning"></i>3. Fertilizer & Nutrition Recommendations</h5>
+        </div>
+        <div class="p-4">
+          <p class="text-secondary mb-3 leading-relaxed">{{ crop['fertilizer_guide'] }}</p>
+          <div class="alert alert-success border-0 small mb-0">
+            <i class="bi bi-lightbulb-fill text-success me-1"></i>
+            <strong>Pro Tip:</strong> Apply Farmyard Manure (FYM) or Vermicompost 15-20 days before sowing to condition the soil microbiome.
+          </div>
+        </div>
+      </div>
+
+      <!-- Harvesting Guide -->
+      <div class="farm-card">
+        <div class="card-header-agri">
+          <h5 class="fw-bold mb-0"><i class="bi bi-scissors me-2 text-danger"></i>4. Maturity & Harvesting Instructions</h5>
+        </div>
+        <div class="p-4">
+          <p class="text-secondary mb-0 leading-relaxed">{{ crop['harvesting_guide'] }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
