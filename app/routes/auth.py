@@ -1,3 +1,4 @@
+import re
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from werkzeug.security import generate_password_hash, check_password_hash
 from app.database.db import get_db
@@ -16,14 +17,17 @@ INDIAN_STATES_DISTRICTS = {
     "Gujarat": ["Rajkot", "Surat", "Ahmedabad", "Vadodara", "Junagadh", "Mehsana"]
 }
 
+EMAIL_REGEX = re.compile(r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$')
+
 @auth_bp.route('/register', methods=['GET', 'POST'])
 def register():
-    """Register a new farmer account."""
+    """Register a new individual farmer account."""
     if session.get('farmer_id'):
         return redirect(url_for('main.dashboard'))
 
     if request.method == 'POST':
         name = request.form.get('name', '').strip()
+        email = request.form.get('email', '').strip().lower()
         mobile = request.form.get('mobile', '').strip()
         password = request.form.get('password', '')
         confirm_password = request.form.get('confirm_password', '')
@@ -33,8 +37,10 @@ def register():
         primary_crops = request.form.get('primary_crops', '').strip()
 
         errors = []
-        if not name:
-            errors.append("Full Name is required.")
+        if not name or len(name) < 2:
+            errors.append("Full Name is required (minimum 2 characters).")
+        if not email or not EMAIL_REGEX.match(email):
+            errors.append("Please provide a valid email address (e.g., farmer@example.com).")
         if not mobile or not mobile.isdigit() or len(mobile) != 10:
             errors.append("Please enter a valid 10-digit mobile number.")
         if not password or len(password) < 6:
@@ -49,75 +55,89 @@ def register():
             if farm_size_val <= 0:
                 errors.append("Farm size must be greater than zero.")
         except ValueError:
+            farm_size_val = 1.0
             errors.append("Farm size must be a valid number.")
 
         if errors:
             for error in errors:
                 flash(error, 'danger')
-            return render_template('auth/register.html', states=INDIAN_STATES_DISTRICTS)
+            return render_template('auth/register.html', states=INDIAN_STATES_DISTRICTS,
+                                   name=name, email=email, mobile=mobile,
+                                   farm_size=farm_size, primary_crops=primary_crops)
 
         db = get_db()
-        existing = db.execute("SELECT id FROM farmers WHERE mobile = ?", (mobile,)).fetchone()
-        if existing:
+        # Check duplicate mobile
+        existing_mobile = db.execute("SELECT id FROM farmers WHERE mobile = ?", (mobile,)).fetchone()
+        if existing_mobile:
             flash("This mobile number is already registered. Please log in.", 'warning')
+            return redirect(url_for('auth.login'))
+
+        # Check duplicate email
+        existing_email = db.execute("SELECT id FROM farmers WHERE LOWER(email) = ?", (email,)).fetchone()
+        if existing_email:
+            flash("This email address is already registered. Please log in.", 'warning')
             return redirect(url_for('auth.login'))
 
         password_hash = generate_password_hash(password)
         db.execute(
-            """INSERT INTO farmers (name, mobile, password_hash, state, district, farm_size, primary_crops)
-               VALUES (?, ?, ?, ?, ?, ?, ?)""",
-            (name, mobile, password_hash, state, district, farm_size_val, primary_crops)
+            """INSERT INTO farmers (name, email, mobile, password_hash, state, district, farm_size, primary_crops)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+            (name, email, mobile, password_hash, state, district, farm_size_val, primary_crops)
         )
         db.commit()
 
-        # Retrieve new farmer record to start session
+        # Retrieve new farmer record for real-time cloud backup
         new_farmer = db.execute("SELECT * FROM farmers WHERE mobile = ?", (mobile,)).fetchone()
-        session.clear()
-        session['farmer_id'] = new_farmer['id']
-        session['farmer_name'] = new_farmer['name']
-        session['district'] = new_farmer['district']
-        session['state'] = new_farmer['state']
-
-        # Real-time sync to Supabase Cloud Database
         try:
             from app.database.supabase_client import sync_farmer_to_supabase
             sync_farmer_to_supabase(new_farmer)
         except Exception:
             pass
 
-        flash(f"Welcome to KrishiMitra, {name}! Your registration was successful.", 'success')
-        return redirect(url_for('main.dashboard'))
+        # Clear any existing session; do NOT auto-login as per requirements
+        session.clear()
+        flash(f"Account created successfully for {name}! Please log in with your credentials to access your dashboard.", 'success')
+        return redirect(url_for('auth.login'))
 
     return render_template('auth/register.html', states=INDIAN_STATES_DISTRICTS)
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
-    """Authenticate registered farmer."""
+    """Authenticate registered farmer using mobile or email."""
     if session.get('farmer_id'):
         return redirect(url_for('main.dashboard'))
 
     if request.method == 'POST':
-        mobile = request.form.get('mobile', '').strip()
+        identifier = request.form.get('login_identifier', request.form.get('mobile', '')).strip()
         password = request.form.get('password', '')
 
-        if not mobile or not password:
-            flash("Please enter both mobile number and password.", 'danger')
-            return render_template('auth/login.html')
+        if not identifier or not password:
+            flash("Please enter your mobile number or email address and password.", 'danger')
+            return render_template('auth/login.html', identifier=identifier)
 
         db = get_db()
-        farmer = db.execute("SELECT * FROM farmers WHERE mobile = ?", (mobile,)).fetchone()
+        # Search by mobile number or email address
+        farmer = db.execute(
+            "SELECT * FROM farmers WHERE mobile = ? OR LOWER(email) = LOWER(?)",
+            (identifier, identifier)
+        ).fetchone()
 
         if farmer is None or not check_password_hash(farmer['password_hash'], password):
-            flash("Invalid mobile number or password. Please try again.", 'danger')
-            return render_template('auth/login.html')
+            flash("Invalid credentials. Please enter a valid registered mobile/email and password.", 'danger')
+            return render_template('auth/login.html', identifier=identifier)
 
+        # Set clean, secure authenticated session
         session.clear()
         session['farmer_id'] = farmer['id']
         session['farmer_name'] = farmer['name']
+        session['farmer_email'] = farmer['email']
         session['district'] = farmer['district']
         session['state'] = farmer['state']
 
         flash(f"Welcome back, {farmer['name']}!", 'success')
+        next_page = request.args.get('next')
+        if next_page and next_page.startswith('/'):
+            return redirect(next_page)
         return redirect(url_for('main.dashboard'))
 
     return render_template('auth/login.html')
@@ -132,20 +152,23 @@ def logout():
 @auth_bp.route('/profile', methods=['GET', 'POST'])
 @login_required
 def profile():
-    """View and update farmer profile."""
+    """View and update authenticated farmer profile."""
     db = get_db()
     farmer = get_current_farmer()
 
     if request.method == 'POST':
         name = request.form.get('name', '').strip()
+        email = request.form.get('email', '').strip().lower()
         state = request.form.get('state', farmer['state']).strip()
         district = request.form.get('district', farmer['district']).strip()
         farm_size = request.form.get('farm_size', str(farmer['farm_size'])).strip()
         primary_crops = request.form.get('primary_crops', farmer['primary_crops'] or '').strip()
 
         errors = []
-        if not name:
+        if not name or len(name) < 2:
             errors.append("Full Name cannot be empty.")
+        if email and not EMAIL_REGEX.match(email):
+            errors.append("Please enter a valid email address.")
         if not district:
             errors.append("District is required.")
         try:
@@ -153,7 +176,14 @@ def profile():
             if farm_size_val <= 0:
                 errors.append("Farm size must be greater than zero.")
         except ValueError:
+            farm_size_val = farmer['farm_size']
             errors.append("Invalid farm size number.")
+
+        # Check duplicate email if changed
+        if email and email != (farmer['email'] or '').lower():
+            dup_email = db.execute("SELECT id FROM farmers WHERE LOWER(email) = ? AND id != ?", (email, farmer['id'])).fetchone()
+            if dup_email:
+                errors.append("This email address is already in use by another account.")
 
         if errors:
             for error in errors:
@@ -161,15 +191,16 @@ def profile():
         else:
             db.execute(
                 """UPDATE farmers 
-                   SET name = ?, state = ?, district = ?, farm_size = ?, primary_crops = ?
+                   SET name = ?, email = ?, state = ?, district = ?, farm_size = ?, primary_crops = ?
                    WHERE id = ?""",
-                (name, state, district, farm_size_val, primary_crops, farmer['id'])
+                (name, email, state, district, farm_size_val, primary_crops, farmer['id'])
             )
             db.commit()
             session['farmer_name'] = name
+            session['farmer_email'] = email
             session['district'] = district
             session['state'] = state
-            flash("Your profile has been updated successfully!", 'success')
+            flash("Your farm profile has been updated successfully!", 'success')
             farmer = get_current_farmer()
 
             # Real-time sync profile update to Supabase

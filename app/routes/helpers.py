@@ -1,5 +1,5 @@
 import functools
-from flask import session, redirect, url_for, flash, g
+from flask import session, redirect, url_for, flash, request
 from app.database.db import get_db
 
 def login_required(view):
@@ -7,8 +7,8 @@ def login_required(view):
     @functools.wraps(view)
     def wrapped_view(**kwargs):
         if session.get('farmer_id') is None:
-            flash('Please log in to access this page.', 'warning')
-            return redirect(url_for('auth.login'))
+            flash('Please log in or register to access this page.', 'warning')
+            return redirect(url_for('auth.login', next=request.path))
         return view(**kwargs)
     return wrapped_view
 

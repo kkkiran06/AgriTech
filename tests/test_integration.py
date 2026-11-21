@@ -21,11 +21,13 @@ def test_full_farmer_journey(client, app):
     assert landing_res.status_code == 200
     assert b"KrishiMitra" in landing_res.data
 
-    # 2. Registration — use a unique mobile each run
+    # 2. Registration — use a unique mobile and email each run
     import time
     unique_mobile = '98' + str(int(time.time()))[-8:]
+    unique_email = f'farmer_{unique_mobile}@example.com'
     reg_res = client.post('/auth/register', data={
         'name': 'Balwant Singh',
+        'email': unique_email,
         'mobile': unique_mobile,
         'password': 'farmerSecure1',
         'confirm_password': 'farmerSecure1',
@@ -35,7 +37,14 @@ def test_full_farmer_journey(client, app):
         'primary_crops': 'Wheat, Mustard'
     }, follow_redirects=True)
     assert reg_res.status_code == 200
-    assert b"Balwant Singh" in reg_res.data
+
+    # Explicit login step (no auto-login as per individual authentication requirements)
+    login_res = client.post('/auth/login', data={
+        'login_identifier': unique_email,
+        'password': 'farmerSecure1'
+    }, follow_redirects=True)
+    assert login_res.status_code == 200
+    assert b"Balwant Singh" in login_res.data
 
     # 3. Access Dashboard
     dash_res = client.get('/dashboard')

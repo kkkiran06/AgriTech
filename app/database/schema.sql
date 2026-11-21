@@ -1,10 +1,11 @@
 -- KrishiMitra SQLite Database Schema
 PRAGMA foreign_keys = ON;
 
--- 1. Farmers table
+-- 1. Farmers table (Registered Individual Users)
 CREATE TABLE IF NOT EXISTS farmers (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
+    email TEXT UNIQUE,
     mobile TEXT UNIQUE NOT NULL,
     password_hash TEXT NOT NULL,
     state TEXT NOT NULL DEFAULT 'Maharashtra',
@@ -101,4 +102,18 @@ CREATE TABLE IF NOT EXISTS government_schemes (
     documents_required TEXT NOT NULL,
     official_url TEXT NOT NULL,
     badge_label TEXT DEFAULT 'Central Scheme'
+);
+
+-- 8. Individual Farmer Farming Records (Personal Crop Log & Field Data)
+CREATE TABLE IF NOT EXISTS farming_records (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    farmer_id INTEGER NOT NULL,
+    crop_name TEXT NOT NULL,
+    area_acres REAL NOT NULL DEFAULT 1.0,
+    sowing_date TEXT,
+    stage TEXT DEFAULT 'Sowing / Seedling',
+    expected_harvest TEXT,
+    notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (farmer_id) REFERENCES farmers(id) ON DELETE CASCADE
 );

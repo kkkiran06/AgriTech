@@ -24,7 +24,6 @@ def main():
 
     print("✓ Flask Server Starting...")
     print("✓ Local Access URL: http://127.0.0.1:5000/")
-    print("✓ Test Farmer Login: Mobile: 9876543210 (Register anytime)")
     print("✓ Press CTRL+C to stop the server.")
     print("=" * 65 + "\n")
 

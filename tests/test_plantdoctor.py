@@ -23,6 +23,7 @@ def _login(client, mobile='9800000001', password='testPass1'):
     """Register (if not exists) and login a test farmer."""
     client.post('/auth/register', data={
         'name': 'Test Farmer',
+        'email': f'farmer_{mobile}@example.com',
         'mobile': mobile,
         'password': password,
         'confirm_password': password,
@@ -31,7 +32,7 @@ def _login(client, mobile='9800000001', password='testPass1'):
         'farm_size': '2.0',
         'primary_crops': 'Tomato'
     })
-    client.post('/auth/login', data={'mobile': mobile, 'password': password},
+    client.post('/auth/login', data={'login_identifier': mobile, 'password': password},
                 follow_redirects=True)
 
 

@@ -14,9 +14,12 @@
           </div>
         </div>
         <h4 class="fw-bold text-success mb-1">{{ farmer['name'] }}</h4>
-        <p class="text-muted small mb-2"><i class="bi bi-phone me-1"></i>+91 {{ farmer['mobile'] }}</p>
+        <p class="text-muted small mb-1"><i class="bi bi-phone me-1"></i>+91 {{ farmer['mobile'] }}</p>
+        {% if farmer['email'] %}
+        <p class="text-muted small mb-2"><i class="bi bi-envelope me-1"></i>{{ farmer['email'] }}</p>
+        {% endif %}
         <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1 mb-3">
-          Verified Farmer Member
+          Individual Farmer Account (ID: #{{ farmer['id'] }})
         </span>
 
         <hr class="my-3">
@@ -57,9 +60,14 @@
               </div>
 
               <div class="col-md-6">
-                <label class="form-label fw-semibold">Mobile Number</label>
+                <label for="email" class="form-label fw-semibold">Email Address</label>
+                <input type="email" class="form-control" id="email" name="email" value="{{ farmer['email'] or '' }}" placeholder="e.g. farmer@example.com">
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Mobile Number (Account ID)</label>
                 <input type="text" class="form-control bg-light" value="+91 {{ farmer['mobile'] }}" readonly disabled>
-                <div class="form-text">Mobile number is linked to your login ID.</div>
+                <div class="form-text">Mobile number is your unique primary identifier.</div>
               </div>
 
               <div class="col-md-6">
