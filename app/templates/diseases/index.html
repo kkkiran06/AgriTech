@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}Pest & Crop Disease Doctor - KrishiMitra{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <!-- Header -->
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-2">
+    <div>
+      <h2 class="fw-bold text-success mb-1">
+        <span class="me-2">🐛</span>Pest & Crop Disease Doctor
+      </h2>
+      <p class="text-muted mb-0">Visual identification, symptom checklist, and integrated management (Organic & Chemical)</p>
+    </div>
+    <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-3 py-2 fs-6">
+      {{ items|length }} Ailments Identified
+    </span>
+  </div>
+
+  <!-- Filters -->
+  <div class="farm-card p-3 mb-4">
+    <form method="GET" action="{{ url_for('diseases.index') }}" class="row g-2 align-items-end">
+      <div class="col-md-5">
+        <label for="cropInput" class="form-label fw-semibold small text-secondary">Search by Crop Name</label>
+        <input type="text" class="form-control" id="cropInput" name="crop" value="{{ selected_crop }}" placeholder="e.g. Rice, Wheat, Cotton, Tomato">
+      </div>
+
+      <div class="col-md-5">
+        <label for="typeSelect" class="form-label fw-semibold small text-secondary">Filter by Pathogen / Pest Type</label>
+        <select class="form-select" id="typeSelect" name="type">
+          <option value="">All Types (Fungal, Insect Pest, Bacterial, Viral)</option>
+          <option value="Fungal" {% if selected_type == 'Fungal' %}selected{% endif %}>Fungal Diseases</option>
+          <option value="Insect Pest" {% if selected_type == 'Insect Pest' %}selected{% endif %}>Insect Pests & Worms</option>
+          <option value="Bacterial" {% if selected_type == 'Bacterial' %}selected{% endif %}>Bacterial Invasions</option>
+          <option value="Viral" {% if selected_type == 'Viral' %}selected{% endif %}>Viral & Mosaic</option>
+        </select>
+      </div>
+
+      <div class="col-md-2 d-flex gap-2">
+        <button type="submit" class="btn btn-agri w-100 py-2">
+          <i class="bi bi-search me-1"></i> Search
+        </button>
+        {% if selected_crop or selected_type %}
+          <a href="{{ url_for('diseases.index') }}" class="btn btn-outline-secondary py-2" title="Clear Filters">
+            <i class="bi bi-arrow-counterclockwise"></i>
+          </a>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+
+  <!-- Disease Grid -->
+  {% if items %}
+    <div class="row g-4">
+      {% for item in items %}
+      <div class="col-md-6 col-lg-4 col-xl-3">
+        <div class="farm-card h-100 d-flex flex-column">
+          <!-- Illustration Image -->
+          <div class="p-2 bg-light border-bottom text-center">
+            <img src="{{ item['image_url'] }}" alt="{{ item['name'] }}" class="img-fluid rounded" style="max-height: 160px; object-fit: contain;">
+          </div>
+          <div class="p-3 flex-grow-1 d-flex flex-column justify-content-between">
+            <div>
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="badge {% if item['type'] == 'Insect Pest' %}bg-warning-subtle text-warning-emphasis{% else %}bg-info-subtle text-info-emphasis{% endif %} border">
+                  {{ item['type'] }}
+                </span>
+                <span class="badge {% if item['severity'] == 'Severe' %}bg-danger text-white{% else %}bg-secondary text-white{% endif %}">
+                  {{ item['severity'] }}
+                </span>
+              </div>
+              <h5 class="fw-bold text-dark mb-1">{{ item['name'] }}</h5>
+              <p class="small text-muted mb-2">
+                <strong>Affects:</strong> {{ item['affected_crops'] }}
+              </p>
+              <p class="small text-secondary mb-3 leading-relaxed" style="font-size: 0.85rem;">
+                {{ item['symptoms']|truncate(90) }}
+              </p>
+            </div>
+            <a href="{{ url_for('diseases.detail', item_id=item['id']) }}" class="btn btn-outline-danger btn-sm w-100 py-2 fw-semibold">
+              <i class="bi bi-heart-pulse me-1"></i> View Symptoms & Cures
+            </a>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="farm-card p-5 text-center">
+      <div class="fs-1 text-muted mb-2">🔍</div>
+      <h5 class="text-dark fw-bold">No Diseases Found For Your Search</h5>
+      <p class="text-muted">Try a different crop name or reset the pathogen type filter.</p>
+      <a href="{{ url_for('diseases.index') }}" class="btn btn-agri mt-2">Clear Filter</a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

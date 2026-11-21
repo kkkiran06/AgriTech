@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 240" width="100%" height="100%">
+  <rect width="400" height="240" fill="#f5f5f5" rx="8"/>
+  <!-- Leaf -->
+  <path d="M130 190 C145 110 180 60 200 45 C220 60 255 110 270 190 Z" fill="#66bb6a"/>
+  <!-- Powdery white spots -->
+  <circle cx="180" cy="110" r="18" fill="#ffffff" opacity="0.85"/>
+  <circle cx="215" cy="130" r="22" fill="#ffffff" opacity="0.85"/>
+  <circle cx="190" cy="160" r="15" fill="#ffffff" opacity="0.8"/>
+  <circle cx="170" cy="85" r="10" fill="#ffffff" opacity="0.75"/>
+  <text x="200" y="225" font-family="sans-serif" font-size="14" font-weight="bold" fill="#424242" text-anchor="middle">Powdery Mildew (Erysiphe / Leveillula)</text>
+</svg>

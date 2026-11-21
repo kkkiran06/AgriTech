@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}{{ item['name'] }} - Symptom & Treatment Guide{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <!-- Breadcrumbs -->
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{{ url_for('main.dashboard') }}" class="text-success text-decoration-none">Dashboard</a></li>
+      <li class="breadcrumb-item"><a href="{{ url_for('diseases.index') }}" class="text-success text-decoration-none">Pest & Disease Doctor</a></li>
+      <li class="breadcrumb-item active" aria-current="page">{{ item['name'] }}</li>
+    </ol>
+  </nav>
+
+  <!-- Disease Header Banner -->
+  <div class="farm-card p-4 mb-4" style="background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%); border-left: 6px solid #c62828;">
+    <div class="row align-items-center g-3">
+      <div class="col-md-3 text-center">
+        <img src="{{ item['image_url'] }}" alt="{{ item['name'] }}" class="img-fluid rounded shadow-sm bg-white p-1" style="max-height: 180px;">
+      </div>
+      <div class="col-md-9">
+        <div class="d-flex flex-wrap gap-2 mb-2">
+          <span class="badge bg-danger text-white px-2 py-1">{{ item['severity'] }} Risk</span>
+          <span class="badge bg-secondary text-white px-2 py-1">{{ item['type'] }}</span>
+        </div>
+        <h2 class="fw-bold text-dark mb-1">{{ item['name'] }}</h2>
+        <p class="text-secondary mb-1">
+          <strong>Commonly Infected Crops:</strong> {{ item['affected_crops'] }}
+        </p>
+        <p class="small text-muted mb-0">
+          Timely diagnosis and integrated pest management (IPM) can reduce crop damage by up to 80%.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Left Column: Symptoms and Prevention -->
+    <div class="col-lg-6">
+      <!-- Symptoms Card -->
+      <div class="farm-card mb-4">
+        <div class="card-header-agri" style="background-color: #fff3e0; border-color: #ffe0b2;">
+          <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-eye-fill me-2 text-warning"></i>1. Key Identification Symptoms</h5>
+        </div>
+        <div class="p-4">
+          <p class="text-secondary leading-relaxed mb-0">{{ item['symptoms'] }}</p>
+        </div>
+      </div>
+
+      <!-- Prevention Card -->
+      <div class="farm-card">
+        <div class="card-header-agri">
+          <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-shield-check me-2 text-success"></i>2. Cultural & Agronomic Prevention</h5>
+        </div>
+        <div class="p-4">
+          <p class="text-secondary leading-relaxed mb-0">{{ item['prevention'] }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Organic and Chemical Treatments -->
+    <div class="col-lg-6">
+      <!-- Organic Remedies -->
+      <div class="farm-card mb-4">
+        <div class="card-header-agri" style="background-color: #e8f5e9; border-color: #c8e6c9;">
+          <h5 class="fw-bold mb-0 text-success"><i class="bi bi-leaf-fill me-2 text-success"></i>3. Organic & Biological Remedies</h5>
+        </div>
+        <div class="p-4">
+          <p class="text-secondary leading-relaxed mb-3">{{ item['organic_treatment'] }}</p>
+          <div class="alert alert-success border-0 small mb-0">
+            <i class="bi bi-check-circle-fill text-success me-1"></i>
+            Safe for friendly insects (honeybees and ladybirds), leaves zero toxic residues.
+          </div>
+        </div>
+      </div>
+
+      <!-- Chemical Formulations -->
+      <div class="farm-card">
+        <div class="card-header-agri" style="background-color: #ede7f6; border-color: #d1c4e9;">
+          <h5 class="fw-bold mb-0 text-primary"><i class="bi bi-eyedropper me-2 text-primary"></i>4. Recommended Chemical Treatment</h5>
+        </div>
+        <div class="p-4">
+          <p class="text-secondary leading-relaxed mb-3">{{ item['chemical_treatment'] }}</p>
+          <div class="alert alert-warning border-0 small mb-0">
+            <i class="bi bi-exclamation-triangle-fill text-warning me-1"></i>
+            <strong>Safety Caution:</strong> Wear gloves and face mask when preparing sprays. Always adhere to waiting periods (pre-harvest interval) stated on container labels.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
