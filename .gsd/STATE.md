@@ -1,41 +1,42 @@
 ---
-updated: 2026-11-21
+updated: 2026-11-22
 ---
 
 # Project State — KrishiMitra AgriTech Platform
 
 ## Current Position
 
-**Milestone:** Smart Agriculture Web Application MVP (Version 1.2.0)
-**Phase:** Phase 10 - Multi-Language & Regional Indian Languages Support
+**Milestone:** Smart Agriculture Web Application MVP (Version 1.3.0)
+**Phase:** Phase 11 - Google Gemini Multimodal Vision (Leaf & Soil Scanning)
 **Status:** ✅ Complete
-**Plan:** `.gsd/plans/10-multi-language-support.md`
+**Repository:** https://github.com/kkkiran06/AgriTech.git
 
 ## Summary of Completed Work
-- Completed all 10 phases across 4 waves following the GSD methodology.
-- Built a modular, production-ready Python Flask backend with 9 Blueprints (`main`, `auth`, `crops`, `weather`, `soil`, `diseases`, `market`, `schemes`, `plantdoctor`).
+- **Google Gemini Multimodal Vision AI (AgriTech 3.1 Flash):**
+  - Integrated Google Gemini Multimodal Vision API (`gemini-3.1-flash-lite`, `gemini-3.8-flash`) powered by Google Cloud AgriTech project (`854695518925`).
+  - Added multi-target scanning: **Crop Leaf Health** (Disease/Pest/Deficiency detection) AND **Farm Soil Health** (Indian soil classification, texture, NPK fertilizer recommendation, organic carbon improvements) AND **Smart Auto-Detect**.
+  - Built `app/ml/gemini_vision.py` with ICAR/KVK agronomic prompting and regional language support.
+  - Upgraded PlantDoctor (`/plantdoctor/`) to a dual **Leaf & Soil Scanner** with camera capture (WebRTC) and photo upload.
+  - Redesigned `result.html` with dedicated Soil vs Leaf visual cards, NPK commercial bag schedules, organic remedies, suitable crops, and audio speech read-out.
+  - Linked Soil Management (`/soil/`) with an instant "Scan Soil with AI Camera" banner.
 - **Multi-Language Support (7 Indian Regional Languages + English):**
   - Hindi (हिन्दी), Marathi (मराठी), Telugu (తెలుగు), Kannada (ಕನ್ನಡ), Tamil (தமிழ்), Punjabi (ਪੰਜਾਬੀ), Bengali (বাংলা), English.
   - Navbar language switcher dropdown with native language scripts.
-  - Template translation helper `t(key)` and session-based language preference.
-  - Client-side full-page auto-translation integration.
-- **Supabase PostgreSQL Cloud Integration:**
-  - Live PostgreSQL database at `db.ojofmguhhdcvfnwgrzgd.supabase.co:5432` with all 7 tables populated.
-  - Automatic dual backend (Cloud PostgreSQL or local SQLite).
-- **PlantDoctor AI:**
-  - Live camera & image upload disease classification (MobileNetV2 PlantVillage 38 classes).
-- Built responsive, accessible Bootstrap 5.3 frontend with agricultural theme.
-- Comprehensive test suite in `tests/` with 27 automated tests passing 100%.
+- **Supabase Cloud Database & Real-Time Sync:**
+  - Real-time HTTPS REST API sync on Port 443 with secret key.
+  - Automatically mirrors all registered farmers and profile updates.
+- **Testing Suite:**
+  - 34/34 automated pytest unit, functional, and integration tests passing 100%.
 
 ## Active Decisions
 
 | Decision | Choice | Status |
 |---|---|---|
-| Web Framework | Python Flask (Blueprints architecture) | Implemented & Verified |
-| Database Engine | Supabase PostgreSQL + SQLite3 Fallback | Implemented & Verified |
-| AI / ML Engine | PyTorch + Torchvision + Pillow (MobileNetV2 PlantVillage) | Implemented & Verified |
-| Localization | 7 Regional Indian Languages + English (Jinja2 context processor + client translate) | Implemented & Verified |
-| Testing Suite | Pytest (Unit, Functional, Integration) | 27/27 Passing |
+| Web Framework | Python Flask (9 Blueprints) | Implemented & Verified |
+| Database Engine | Supabase PostgreSQL REST API + SQLite3 Fallback | Implemented & Verified |
+| Multimodal AI Engine | Google Gemini Vision (AgriTech 3.1 Flash) + MobileNetV2 Offline | Implemented & Verified |
+| Localization | 7 Regional Indian Languages + English | Implemented & Verified |
+| Testing Suite | Pytest | 34/34 Passing |
 
 ## Blockers
 *None. Project is fully functional, verified, and complete.*
