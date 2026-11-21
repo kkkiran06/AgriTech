@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}Government Agriculture Schemes & Subsidies - KrishiMitra{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <!-- Header -->
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-2">
+    <div>
+      <h2 class="fw-bold text-success mb-1">
+        <span class="me-2">🏛️</span>Government Schemes & Subsidies
+      </h2>
+      <p class="text-muted mb-0">Official welfare programs, financial grants, subsidized loans, and crop insurance for Indian farmers</p>
+    </div>
+    <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 fs-6">
+      {{ schemes|length }} Active Welfare Schemes
+    </span>
+  </div>
+
+  <!-- Category Filter Bar -->
+  <div class="farm-card p-3 mb-4">
+    <div class="d-flex flex-wrap gap-2 align-items-center">
+      <span class="small fw-semibold text-secondary me-2"><i class="bi bi-funnel me-1"></i>Filter by Sector:</span>
+      <a href="{{ url_for('schemes.index') }}" class="btn btn-sm {% if not selected_category %}btn-success{% else %}btn-outline-secondary{% endif %} rounded-pill px-3">
+        All Programs
+      </a>
+      {% for cat in categories %}
+        <a href="{{ url_for('schemes.index', category=cat) }}" class="btn btn-sm {% if selected_category == cat %}btn-success{% else %}btn-outline-secondary{% endif %} rounded-pill px-3">
+          {{ cat }}
+        </a>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Schemes Cards -->
+  {% if schemes %}
+    <div class="row g-4">
+      {% for scheme in schemes %}
+      <div class="col-lg-6">
+        <div class="farm-card h-100 d-flex flex-column justify-content-between border-top border-4 border-success">
+          <div class="p-4">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <span class="badge bg-success-subtle text-success border">{{ scheme['category'] }}</span>
+              <span class="badge bg-light text-secondary border small">{{ scheme['badge_label'] }}</span>
+            </div>
+
+            <h4 class="fw-bold text-dark mb-2">{{ scheme['title'] }}</h4>
+            <p class="small text-secondary mb-3 leading-relaxed">{{ scheme['short_desc'] }}</p>
+
+            <!-- Benefits Box -->
+            <div class="p-3 rounded mb-3" style="background-color: #f1f8e9; border-left: 4px solid #43a047;">
+              <strong class="text-success small d-block mb-1"><i class="bi bi-cash-coin me-1"></i> Financial Benefits & Subsidies:</strong>
+              <p class="small text-dark mb-0">{{ scheme['benefits'] }}</p>
+            </div>
+
+            <!-- Eligibility Box -->
+            <div class="mb-3 small">
+              <strong class="text-dark d-block mb-1"><i class="bi bi-person-check text-primary me-1"></i> Eligibility Criteria:</strong>
+              <p class="text-muted mb-0">{{ scheme['eligibility'] }}</p>
+            </div>
+
+            <!-- Documents Required -->
+            <div class="small">
+              <strong class="text-dark d-block mb-1"><i class="bi bi-file-earmark-text text-secondary me-1"></i> Documents Required:</strong>
+              <span class="text-muted">{{ scheme['documents_required'] }}</span>
+            </div>
+          </div>
+
+          <div class="p-3 bg-light border-top text-end">
+            <a href="{{ scheme['official_url'] }}" target="_blank" rel="noopener noreferrer" class="btn btn-agri btn-sm px-3">
+              Apply on Official Portal <i class="bi bi-box-arrow-up-right ms-1"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="farm-card p-5 text-center">
+      <i class="bi bi-search text-muted display-4 mb-2"></i>
+      <h5 class="fw-bold text-dark">No Schemes Found In This Category</h5>
+      <p class="text-muted small">Please select another sector or view all government programs.</p>
+      <a href="{{ url_for('schemes.index') }}" class="btn btn-agri btn-sm">View All Schemes</a>
+    </div>
+  {% endif %}
+
+  <!-- Advisory Notice -->
+  <div class="mt-4 p-3 rounded bg-white border shadow-sm small text-muted d-flex align-items-center gap-3">
+    <div class="fs-3 text-warning">
+      <i class="bi bi-shield-exclamation"></i>
+    </div>
+    <div>
+      <strong>Official Citizen Advisory:</strong> All government agricultural schemes listed on KrishiMitra direct to verified `.gov.in` and `.nic.in` government portals. Farmers should never pay unauthorized agents or intermediaries for applying to central welfare initiatives.
+    </div>
+  </div>
+</div>
+{% endblock %}
