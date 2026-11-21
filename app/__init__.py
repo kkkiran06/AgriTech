@@ -1,0 +1,40 @@
+import os
+from flask import Flask
+
+def create_app(test_config=None):
+    """Create and configure the KrishiMitra Flask application."""
+    app = Flask(__name__, instance_relative_config=True)
+    
+    # Default configuration
+    app.config.from_mapping(
+        SECRET_KEY=os.environ.get('SECRET_KEY', 'krishimitra-dev-secret-key-2026'),
+        DATABASE=os.path.join(app.root_path, '..', 'krishimitra.db'),
+    )
+
+    if test_config is not None:
+        app.config.update(test_config)
+
+    # Initialize Database helpers
+    from app.database import db
+    db.init_app(app)
+
+    # Register blueprints (to be linked in subsequent phases)
+    from app.routes.main import main_bp
+    from app.routes.auth import auth_bp
+    from app.routes.crops import crops_bp
+    from app.routes.weather import weather_bp
+    from app.routes.soil import soil_bp
+    from app.routes.diseases import diseases_bp
+    from app.routes.market import market_bp
+    from app.routes.schemes import schemes_bp
+
+    app.register_blueprint(main_bp)
+    app.register_blueprint(auth_bp, url_prefix='/auth')
+    app.register_blueprint(crops_bp, url_prefix='/crops')
+    app.register_blueprint(weather_bp, url_prefix='/weather')
+    app.register_blueprint(soil_bp, url_prefix='/soil')
+    app.register_blueprint(diseases_bp, url_prefix='/diseases')
+    app.register_blueprint(market_bp, url_prefix='/market')
+    app.register_blueprint(schemes_bp, url_prefix='/schemes')
+
+    return app
