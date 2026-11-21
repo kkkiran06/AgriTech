@@ -6,37 +6,43 @@ updated: 2026-11-22
 
 ## Current Position
 
-**Milestone:** Smart Agriculture Web Application MVP (Version 1.3.0)
-**Phase:** Phase 11 - Google Gemini Multimodal Vision (Leaf & Soil Scanning)
+**Milestone:** Smart Agriculture Web Application MVP (Version 1.4.0)
+**Phase:** Phase 12 - Real User Registration, Authentication & Individual Data Storage
 **Status:** ✅ Complete
 **Repository:** https://github.com/kkkiran06/AgriTech.git
 
 ## Summary of Completed Work
-- **Google Gemini Multimodal Vision AI (AgriTech 3.1 Flash):**
-  - Integrated Google Gemini Multimodal Vision API (`gemini-3.1-flash-lite`, `gemini-3.8-flash`) powered by Google Cloud AgriTech project (`854695518925`).
-  - Added multi-target scanning: **Crop Leaf Health** (Disease/Pest/Deficiency detection) AND **Farm Soil Health** (Indian soil classification, texture, NPK fertilizer recommendation, organic carbon improvements) AND **Smart Auto-Detect**.
-  - Built `app/ml/gemini_vision.py` with ICAR/KVK agronomic prompting and regional language support.
-  - Upgraded PlantDoctor (`/plantdoctor/`) to a dual **Leaf & Soil Scanner** with camera capture (WebRTC) and photo upload.
-  - Redesigned `result.html` with dedicated Soil vs Leaf visual cards, NPK commercial bag schedules, organic remedies, suitable crops, and audio speech read-out.
-  - Linked Soil Management (`/soil/`) with an instant "Scan Soil with AI Camera" banner.
-- **Multi-Language Support (7 Indian Regional Languages + English):**
-  - Hindi (हिन्दी), Marathi (मराठी), Telugu (తెలుగు), Kannada (ಕನ್ನಡ), Tamil (தமிழ்), Punjabi (ਪੰਜਾਬੀ), Bengali (বাংলা), English.
-  - Navbar language switcher dropdown with native language scripts.
-- **Supabase Cloud Database & Real-Time Sync:**
-  - Real-time HTTPS REST API sync on Port 443 with secret key.
-  - Automatically mirrors all registered farmers and profile updates.
+- **Real Individual User Registration & Authentication:**
+  - Mandatory registration with Full Name, Email Address, Mobile Number, Password, Confirm Password, State, District, and Farm Holding.
+  - Backend validation for unique mobile, unique email format regex, minimum password lengths, and matching confirmation.
+  - Removed all automatic logins upon registration; users must explicitly log in with their credentials.
+  - Multi-identifier authentication: Farmers can log in using either their registered 10-digit mobile number or their email address.
+  - Unauthenticated users attempting to access `/dashboard` or personal pages are automatically redirected to `/auth/login`.
+- **Removed All Demo & Example User Data:**
+  - Purged 16 automatically generated fake test profiles (`Sardar Balwant Singh`, `Test Farmer`, `Live Sync Verified`, mock credentials).
+  - Preserved legitimate real accounts (`khadar`, `Dev`, `Devan`, `Ramesh Kumar`, `vikas`, `kiran`, `rr`).
+  - Removed mock login credentials banner from `run.py`.
+- **Individual Private Data Storage (`farming_records` & `diagnosis_history`):**
+  - Created `farming_records` table linked by `farmer_id` with cascade deletion.
+  - Added personal field tracking: Crop name, plot area, sowing date, growth stage, expected harvest, field notes.
+  - Added strict ownership validation (`WHERE id = ? AND farmer_id = ?`) preventing any farmer from modifying or viewing another farmer's records.
+- **Dynamic Personalized Dashboard & Empty States:**
+  - Displays authenticated user's actual name, Farmer ID, farm size, location, and registered crops.
+  - Displays a clean empty state: *"No farming records available. Add your first record."* when no personal records exist.
+  - Separated public agricultural reference data (APMC Mandi benchmarks, crop guide, schemes) from private user records.
 - **Testing Suite:**
-  - 34/34 automated pytest unit, functional, and integration tests passing 100%.
+  - 37/37 automated pytest unit, functional, security, and integration tests passing 100%.
 
 ## Active Decisions
 
 | Decision | Choice | Status |
 |---|---|---|
-| Web Framework | Python Flask (9 Blueprints) | Implemented & Verified |
-| Database Engine | Supabase PostgreSQL REST API + SQLite3 Fallback | Implemented & Verified |
-| Multimodal AI Engine | Google Gemini Vision (AgriTech 3.1 Flash) + MobileNetV2 Offline | Implemented & Verified |
-| Localization | 7 Regional Indian Languages + English | Implemented & Verified |
-| Testing Suite | Pytest | 34/34 Passing |
+| User Model | Individual Farmers with unique ID, Email, Mobile | Implemented & Verified |
+| Login Identifiers | Dual Login: 10-digit Mobile or Email + Scrypt/PBKDF2 Password | Implemented & Verified |
+| Private Data Storage | `farming_records` + `diagnosis_history` linked by `farmer_id` | Implemented & Verified |
+| Access Control | Strict `@login_required` on dashboard & ownership check on mutations | Implemented & Verified |
+| Multimodal AI Engine | Google Gemini Vision (AgriTech 3.1 Flash) | Implemented & Verified |
+| Testing Suite | Pytest | 37/37 Passing |
 
 ## Blockers
 *None. Project is fully functional, verified, and complete.*
