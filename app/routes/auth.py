@@ -90,9 +90,11 @@ def register():
         new_farmer = db.execute("SELECT * FROM farmers WHERE mobile = ?", (mobile,)).fetchone()
         try:
             from app.database.supabase_client import sync_farmer_to_supabase
-            sync_farmer_to_supabase(new_farmer)
-        except Exception:
-            pass
+            sync_res = sync_farmer_to_supabase(new_farmer)
+            if sync_res:
+                print(f">>> [Real-Time DB Sync] Farmer {name} ({mobile}) registered and synced to Supabase!")
+        except Exception as e:
+            print(f">>> [Real-Time DB Sync Notice] Cloud sync: {e}")
 
         # Clear any existing session; do NOT auto-login as per requirements
         session.clear()
@@ -121,6 +123,35 @@ def login():
             "SELECT * FROM farmers WHERE mobile = ? OR LOWER(email) = LOWER(?)",
             (identifier, identifier)
         ).fetchone()
+
+        # If not found locally, query Supabase cloud database
+        if farmer is None:
+            try:
+                from app.database.supabase_client import get_farmer_from_supabase
+                sb_farmer = get_farmer_from_supabase(identifier)
+                if sb_farmer and 'mobile' in sb_farmer:
+                    db.execute(
+                        """INSERT OR REPLACE INTO farmers 
+                           (name, email, mobile, password_hash, state, district, farm_size, primary_crops)
+                           VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+                        (
+                            sb_farmer.get('name'),
+                            sb_farmer.get('email'),
+                            sb_farmer.get('mobile'),
+                            sb_farmer.get('password_hash'),
+                            sb_farmer.get('state', 'Maharashtra'),
+                            sb_farmer.get('district', 'Pune'),
+                            float(sb_farmer.get('farm_size') or 1.0),
+                            sb_farmer.get('primary_crops', '')
+                        )
+                    )
+                    db.commit()
+                    farmer = db.execute(
+                        "SELECT * FROM farmers WHERE mobile = ? OR LOWER(email) = LOWER(?)",
+                        (identifier, identifier)
+                    ).fetchone()
+            except Exception:
+                pass
 
         if farmer is None or not check_password_hash(farmer['password_hash'], password):
             flash("Invalid credentials. Please enter a valid registered mobile/email and password.", 'danger')

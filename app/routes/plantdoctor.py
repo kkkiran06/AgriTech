@@ -174,6 +174,22 @@ def diagnose():
             )
             db.commit()
             record_id = cur.lastrowid
+
+            # Real-time sync diagnosis to Supabase
+            try:
+                from app.database.supabase_client import sync_diagnosis_to_supabase
+                diag_data = {
+                    'disease_name': analysis['health_status'],
+                    'plant_name': f"{tag} {analysis['subject_name']}",
+                    'confidence_score': analysis['confidence'],
+                    'severity': analysis['severity'],
+                    'ai_mode': analysis['ai_engine'],
+                    'symptoms_summary': analysis['visual_analysis'][:300],
+                    'treatment_summary': f"Organic: {analysis['organic_treatment'][:140]} | Chemical/NPK: {analysis['chemical_treatment'][:140]}"
+                }
+                sync_diagnosis_to_supabase(diag_data, farmer.get('mobile'))
+            except Exception:
+                pass
         except Exception as exc:
             current_app.logger.warning(f"PlantDoctor history save error: {exc}")
 

@@ -94,6 +94,22 @@ def add_farming_record():
         (farmer['id'], crop_name, area_val, sowing_date, stage, expected_harvest, notes)
     )
     db.commit()
+
+    # Real-time sync to Supabase cloud
+    try:
+        from app.database.supabase_client import sync_farming_record_to_supabase
+        rec_data = {
+            'crop_name': crop_name,
+            'area_acres': area_val,
+            'sowing_date': sowing_date,
+            'stage': stage,
+            'expected_harvest': expected_harvest,
+            'notes': notes
+        }
+        sync_farming_record_to_supabase(rec_data, farmer.get('mobile'))
+    except Exception:
+        pass
+
     flash(f"Farming record for '{crop_name}' added successfully to your private account!", "success")
     return redirect(url_for('main.dashboard'))
 
@@ -103,6 +119,8 @@ def delete_farming_record(record_id):
     """Delete a personal farming record strictly owned by the authenticated farmer."""
     farmer = get_current_farmer()
     db = get_db()
+    # Fetch record to identify crop for cloud deletion before local delete
+    rec = db.execute("SELECT crop_name FROM farming_records WHERE id = ? AND farmer_id = ?", (record_id, farmer['id'])).fetchone()
     # Enforce strict user ownership check
     cur = db.execute(
         "DELETE FROM farming_records WHERE id = ? AND farmer_id = ?",
@@ -110,6 +128,12 @@ def delete_farming_record(record_id):
     )
     db.commit()
     if cur.rowcount > 0:
+        if rec and farmer.get('mobile'):
+            try:
+                from app.database.supabase_client import delete_farming_record_from_supabase
+                delete_farming_record_from_supabase(rec['crop_name'], farmer['mobile'])
+            except Exception:
+                pass
         flash("Farming record deleted.", "info")
     else:
         flash("Record not found or unauthorized.", "danger")

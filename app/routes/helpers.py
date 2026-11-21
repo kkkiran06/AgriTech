@@ -19,4 +19,6 @@ def get_current_farmer():
         return None
     db = get_db()
     farmer = db.execute("SELECT * FROM farmers WHERE id = ?", (farmer_id,)).fetchone()
-    return farmer
+    if farmer is not None:
+        return dict(farmer)
+    return None
