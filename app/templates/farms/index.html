@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+
+{% block title %}My Farm Parcels - KrishiMitra{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <!-- Header -->
+  <div class="card border-0 shadow-sm p-4 mb-4 bg-white" style="border-radius: 12px; border: 1px solid #e2e8f0 !important;">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+      <div>
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 small">
+            <i class="bi bi-geo-alt-fill me-1"></i> Multi-Parcel Land Management
+          </span>
+          <span class="badge bg-light text-muted border small">GPS &amp; Soil Profiles</span>
+        </div>
+        <h2 class="fw-bold mb-1 text-dark" style="letter-spacing: -0.5px;">
+          My Registered Farm Parcels
+        </h2>
+        <p class="text-muted small mb-0">
+          Manage your agricultural land plots, survey numbers, irrigation methods, and soil characteristics.
+        </p>
+      </div>
+
+      <div>
+        <button class="btn btn-success btn-sm px-4 py-2 fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#newFarmModal">
+          <i class="bi bi-plus-lg me-1"></i> Add Farm Parcel
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Farms Grid -->
+  {% if farms and farms|length > 0 %}
+    <div class="row g-4">
+      {% for f in farms %}
+      <div class="col-md-6 col-lg-4">
+        <div class="card border-0 shadow-sm p-4 h-100 bg-white d-flex flex-column justify-content-between" style="border-radius: 12px; border: 1px solid #e2e8f0 !important;">
+          <div>
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <h5 class="fw-bold text-dark mb-0">{{ f['name'] }}</h5>
+              <span class="badge bg-success-subtle text-success border border-success-subtle">{{ f['total_area'] }} {{ f['area_unit'] or 'Acres' }}</span>
+            </div>
+            <p class="text-muted small mb-3">
+              <i class="bi bi-geo-alt text-success me-1"></i> {{ f['village'] or 'Main Plot' }}, {{ f['taluk'] or f['district'] }}, {{ f['state'] }}
+              {% if f['survey_number'] %} &bull; Survey #{{ f['survey_number'] }}{% endif %}
+            </p>
+
+            <div class="p-3 bg-light rounded-2 border mb-3 small">
+              <div class="d-flex justify-content-between mb-1">
+                <span class="text-muted">Soil Type:</span>
+                <strong class="text-dark">{{ f['soil_type'] }}</strong>
+              </div>
+              <div class="d-flex justify-content-between mb-1">
+                <span class="text-muted">Water Source:</span>
+                <strong class="text-dark">{{ f['water_source'] }}</strong>
+              </div>
+              <div class="d-flex justify-content-between mb-1">
+                <span class="text-muted">Irrigation:</span>
+                <strong class="text-dark">{{ f['irrigation_type'] }}</strong>
+              </div>
+              <div class="d-flex justify-content-between">
+                <span class="text-muted">Tenure:</span>
+                <span class="badge bg-light text-secondary border">{{ f['ownership_type'] }}</span>
+              </div>
+            </div>
+
+            {% if f['notes'] %}
+            <p class="text-muted small mb-3 fst-italic">"{{ f['notes'] }}"</p>
+            {% endif %}
+          </div>
+
+          <div class="d-flex justify-content-between align-items-center pt-3 border-top mt-auto">
+            <span class="text-muted" style="font-size: 0.72rem;">Registered {{ f['created_at'][:10] }}</span>
+            <form method="POST" action="{{ url_for('farms.delete_farm', farm_id=f['id']) }}" onsubmit="return confirm('Remove this farm parcel?');">
+              <button type="submit" class="btn btn-sm btn-outline-danger border-0">
+                <i class="bi bi-trash3 me-1"></i> Remove
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="text-center py-5 px-3 bg-white rounded-3 border" style="border-radius: 12px; border: 1px dashed #cbd5e1 !important;">
+      <div class="mb-2" style="font-size: 2.5rem; opacity: 0.8;">🗺️</div>
+      <h5 class="fw-bold text-dark mb-1">No farm parcels registered yet.</h5>
+      <p class="text-muted small mb-3" style="max-width: 480px; margin: 0 auto; line-height: 1.5;">
+        Add your agricultural land parcels to track survey numbers, soil types, water sources, and acreage.
+      </p>
+      <button class="btn btn-success btn-sm px-4 py-2 fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#newFarmModal">
+        <i class="bi bi-plus-lg me-1"></i> Add Your First Farm Parcel
+      </button>
+    </div>
+  {% endif %}
+
+</div>
+
+<!-- Modal: New Farm Parcel -->
+<div class="modal fade" id="newFarmModal" tabindex="-1" aria-labelledby="newFarmModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow" style="border-radius: 12px; overflow: hidden;">
+      <form method="POST" action="{{ url_for('farms.add_farm') }}">
+        <div class="modal-header bg-dark text-white py-3 px-4">
+          <h6 class="modal-title fw-bold" id="newFarmModalLabel">
+            <i class="bi bi-geo-alt me-1 text-success"></i> Register Land Parcel
+          </h6>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-4">
+          <div class="mb-3">
+            <label for="name" class="form-label fw-semibold small text-dark">Parcel / Plot Name <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="name" name="name" placeholder="e.g. North Canal Plot, Main Farm" required>
+          </div>
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <label for="total_area" class="form-label fw-semibold small text-dark">Area (Acres) <span class="text-danger">*</span></label>
+              <input type="number" class="form-control" id="total_area" name="total_area" value="2.5" step="0.1" min="0.1" required>
+            </div>
+            <div class="col-6">
+              <label for="survey_number" class="form-label fw-semibold small text-dark">Survey Number</label>
+              <input type="text" class="form-control" id="survey_number" name="survey_number" placeholder="e.g. 142/2A">
+            </div>
+          </div>
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <label for="village" class="form-label fw-semibold small text-dark">Village</label>
+              <input type="text" class="form-control" id="village" name="village" placeholder="e.g. Shirur">
+            </div>
+            <div class="col-6">
+              <label for="taluk" class="form-label fw-semibold small text-dark">Taluk / Tehsil</label>
+              <input type="text" class="form-control" id="taluk" name="taluk" placeholder="e.g. Haveli">
+            </div>
+          </div>
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <label for="soil_type" class="form-label fw-semibold small text-dark">Soil Type</label>
+              <select class="form-select" id="soil_type" name="soil_type">
+                <option value="Black Soil (Regur)">Black Soil (Regur)</option>
+                <option value="Alluvial Soil">Alluvial Soil</option>
+                <option value="Red Sandy Loam" selected>Red Sandy Loam</option>
+                <option value="Clayey Loam">Clayey Loam</option>
+                <option value="Laterite Soil">Laterite Soil</option>
+              </select>
+            </div>
+            <div class="col-6">
+              <label for="water_source" class="form-label fw-semibold small text-dark">Water Source</label>
+              <select class="form-select" id="water_source" name="water_source">
+                <option value="Borewell" selected>Borewell</option>
+                <option value="Canal">Canal</option>
+                <option value="Open Well">Open Well</option>
+                <option value="River / Stream">River / Stream</option>
+                <option value="Rainfed">Rainfed Only</option>
+              </select>
+            </div>
+          </div>
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <label for="irrigation_type" class="form-label fw-semibold small text-dark">Irrigation Method</label>
+              <select class="form-select" id="irrigation_type" name="irrigation_type">
+                <option value="Drip Irrigation" selected>Drip Irrigation</option>
+                <option value="Sprinkler">Sprinkler</option>
+                <option value="Flood / Furrow">Flood / Furrow</option>
+                <option value="None / Rainfed">None / Rainfed</option>
+              </select>
+            </div>
+            <div class="col-6">
+              <label for="ownership_type" class="form-label fw-semibold small text-dark">Ownership</label>
+              <select class="form-select" id="ownership_type" name="ownership_type">
+                <option value="Owned" selected>Owned</option>
+                <option value="Leased">Leased</option>
+                <option value="Sharecropped">Sharecropped</option>
+              </select>
+            </div>
+          </div>
+          <div class="mb-2">
+            <label for="notes" class="form-label fw-semibold small text-dark">Field Notes</label>
+            <textarea class="form-control" id="notes" name="notes" rows="2" placeholder="e.g. Fenced plot, organic certification in progress..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer bg-light py-2 px-4 border-top">
+          <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-sm btn-success fw-semibold px-4">Register Parcel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

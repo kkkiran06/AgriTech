@@ -220,7 +220,89 @@
     </div>
   </div>
 
-  <!-- SECTION 3: Public Agricultural Reference & Advisory -->
+  <!-- SECTION 3: Farm Management, Commerce & Community -->
+  <div class="mb-3">
+    <div class="d-flex justify-content-between align-items-center">
+      <div>
+        <h5 class="fw-bold text-dark mb-1">
+          Farm Operations, Commerce &amp; Community
+        </h5>
+        <p class="text-muted small mb-0">
+          Tools for multi-parcel tracking, expense ledgers, insurance calculation, voice AI guidance, and direct trading.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-4">
+    <!-- Card 1: Land Parcels -->
+    <div class="col-6 col-md-4 col-lg-2">
+      <a href="{{ url_for('farms.index') }}" class="text-decoration-none">
+        <div class="stat-card h-100 text-center py-3">
+          <div class="fs-3 mb-1">🗺️</div>
+          <h6 class="fw-bold text-dark mb-1 small">Land Parcels</h6>
+          <small class="text-muted" style="font-size: 0.75rem;">GPS &amp; Irrigation</small>
+        </div>
+      </a>
+    </div>
+
+    <!-- Card 2: Financial Ledger & Insurance -->
+    <div class="col-6 col-md-4 col-lg-2">
+      <a href="{{ url_for('finance.index') }}" class="text-decoration-none">
+        <div class="stat-card h-100 text-center py-3">
+          <div class="fs-3 mb-1">💰</div>
+          <h6 class="fw-bold text-dark mb-1 small">Finance &amp; PMFBY</h6>
+          <small class="text-muted" style="font-size: 0.75rem;">P&amp;L &amp; Insurance</small>
+        </div>
+      </a>
+    </div>
+
+    <!-- Card 3: Crop Milestones -->
+    <div class="col-6 col-md-4 col-lg-2">
+      <a href="{{ url_for('progress.index') }}" class="text-decoration-none">
+        <div class="stat-card h-100 text-center py-3">
+          <div class="fs-3 mb-1">📋</div>
+          <h6 class="fw-bold text-dark mb-1 small">Crop Milestones</h6>
+          <small class="text-muted" style="font-size: 0.75rem;">9 Growth Stages</small>
+        </div>
+      </a>
+    </div>
+
+    <!-- Card 4: Voice Assistant -->
+    <div class="col-6 col-md-4 col-lg-2">
+      <a href="{{ url_for('rag.index') }}" class="text-decoration-none">
+        <div class="stat-card h-100 text-center py-3">
+          <div class="fs-3 mb-1">🎙️</div>
+          <h6 class="fw-bold text-dark mb-1 small">Voice AI Guide</h6>
+          <small class="text-muted" style="font-size: 0.75rem;">ICAR Agronomy RAG</small>
+        </div>
+      </a>
+    </div>
+
+    <!-- Card 5: Community Forum -->
+    <div class="col-6 col-md-4 col-lg-2">
+      <a href="{{ url_for('community.index') }}" class="text-decoration-none">
+        <div class="stat-card h-100 text-center py-3">
+          <div class="fs-3 mb-1">💬</div>
+          <h6 class="fw-bold text-dark mb-1 small">Farmer Forum</h6>
+          <small class="text-muted" style="font-size: 0.75rem;">Peer Q&amp;A &amp; Advice</small>
+        </div>
+      </a>
+    </div>
+
+    <!-- Card 6: Produce Marketplace -->
+    <div class="col-6 col-md-4 col-lg-2">
+      <a href="{{ url_for('marketplace.index') }}" class="text-decoration-none">
+        <div class="stat-card h-100 text-center py-3">
+          <div class="fs-3 mb-1">🛒</div>
+          <h6 class="fw-bold text-dark mb-1 small">Marketplace</h6>
+          <small class="text-muted" style="font-size: 0.75rem;">Direct Crop Sale</small>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <!-- SECTION 4: Public Agricultural Reference & Advisory -->
   <div class="mb-3">
     <h5 class="fw-bold text-dark mb-1">
       Public Agricultural Reference & Advisory

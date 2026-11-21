@@ -46,6 +46,13 @@ def create_app(test_config=None):
     from app.routes.market import market_bp
     from app.routes.schemes import schemes_bp
     from app.routes.plantdoctor import plantdoctor_bp
+    from app.routes.rag import rag_bp
+    from app.routes.community import community_bp
+    from app.routes.farms import farms_bp
+    from app.routes.finance import finance_bp
+    from app.routes.consultations import consultations_bp
+    from app.routes.marketplace import marketplace_bp
+    from app.routes.progress import progress_bp
 
     app.register_blueprint(main_bp)
     app.register_blueprint(auth_bp, url_prefix='/auth')
@@ -56,6 +63,13 @@ def create_app(test_config=None):
     app.register_blueprint(market_bp, url_prefix='/market')
     app.register_blueprint(schemes_bp, url_prefix='/schemes')
     app.register_blueprint(plantdoctor_bp, url_prefix='/plantdoctor')
+    app.register_blueprint(rag_bp, url_prefix='/rag')
+    app.register_blueprint(community_bp, url_prefix='/community')
+    app.register_blueprint(farms_bp, url_prefix='/farms')
+    app.register_blueprint(finance_bp, url_prefix='/finance')
+    app.register_blueprint(consultations_bp, url_prefix='/consultations')
+    app.register_blueprint(marketplace_bp, url_prefix='/marketplace')
+    app.register_blueprint(progress_bp, url_prefix='/progress')
 
     # Configure upload folder
     upload_folder = os.path.join(app.root_path, 'static', 'uploads')

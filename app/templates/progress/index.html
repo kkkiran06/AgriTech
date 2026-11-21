@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block title %}Crop Growth Milestones - KrishiMitra{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <!-- Header -->
+  <div class="card border-0 shadow-sm p-4 mb-4 bg-white" style="border-radius: 12px; border: 1px solid #e2e8f0 !important;">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+      <div>
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 small">
+            <i class="bi bi-calendar-check-fill me-1"></i> Lifecycle Progress Tracking
+          </span>
+          <span class="badge bg-light text-muted border small">ICAR Agronomic Protocol</span>
+        </div>
+        <h2 class="fw-bold mb-1 text-dark" style="letter-spacing: -0.5px;">
+          Seasonal Crop Growth &amp; Milestone Tracker
+        </h2>
+        <p class="text-muted small mb-0">
+          Track stage-by-stage agronomic operations from land preparation, seed treatment, and top dressing through harvesting and marketing.
+        </p>
+      </div>
+
+      <div>
+        <button class="btn btn-success btn-sm px-4 py-2 fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#newCropMilestoneModal">
+          <i class="bi bi-plus-lg me-1"></i> Track New Crop
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Crop Milestones Section -->
+  {% if grouped_milestones and grouped_milestones.keys()|length > 0 %}
+    {% for crop_name, stages in grouped_milestones.items() %}
+    {% set total = stages|length %}
+    {% set done = stages|selectattr('completed')|list|length %}
+    {% set pct = (done / total * 100)|round|int %}
+    
+    <div class="card border-0 shadow-sm mb-4 bg-white" style="border-radius: 12px; border: 1px solid #e2e8f0 !important;">
+      <div class="p-4 border-bottom bg-light d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
+        <div>
+          <h4 class="fw-bold text-dark mb-0">{{ crop_name }}</h4>
+          <small class="text-muted">Season: {{ stages[0]['season'] }} &bull; {{ done }}/{{ total }} Stages Complete</small>
+        </div>
+        <div style="min-width: 200px;">
+          <div class="d-flex justify-content-between small text-muted mb-1">
+            <span>Overall Progress</span>
+            <strong class="text-success">{{ pct }}%</strong>
+          </div>
+          <div class="progress" style="height: 8px;">
+            <div class="progress-bar bg-success" role="progressbar" style="width: {{ pct }}%;" aria-valuenow="{{ pct }}" aria-valuemin="0" aria-valuemax="100"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-4">
+        <div class="list-group list-group-flush">
+          {% for st in stages %}
+          <div class="list-group-item px-0 py-3 d-flex justify-content-between align-items-center border-bottom">
+            <div class="d-flex align-items-center gap-3">
+              <form method="POST" action="{{ url_for('progress.toggle_milestone', milestone_id=st['id']) }}" class="d-inline">
+                <button type="submit" class="btn btn-sm {% if st['completed'] %}btn-success{% else %}btn-outline-secondary{% endif %}" style="width: 32px; height: 32px; border-radius: 50%; padding: 0;">
+                  <i class="bi {% if st['completed'] %}bi-check-lg{% else %}bi-circle{% endif %}"></i>
+                </button>
+              </form>
+              <div>
+                <span class="fw-semibold {% if st['completed'] %}text-decoration-line-through text-muted{% else %}text-dark{% endif %}">
+                  {{ st['stage_name'] }}
+                </span>
+                {% if st['completed_date'] %}
+                <small class="text-success d-block" style="font-size: 0.75rem;">
+                  <i class="bi bi-calendar-check me-1"></i> Completed on {{ st['completed_date'] }}
+                </small>
+                {% endif %}
+              </div>
+            </div>
+
+            <div>
+              <span class="badge {% if st['completed'] %}bg-success-subtle text-success border border-success-subtle{% else %}bg-light text-muted border{% endif %} small">
+                {% if st['completed'] %}Completed{% else %}Pending{% endif %}
+              </span>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  {% else %}
+    <div class="text-center py-5 px-3 bg-white rounded-3 border" style="border-radius: 12px; border: 1px dashed #cbd5e1 !important;">
+      <div class="mb-2" style="font-size: 2.5rem; opacity: 0.8;">🌱</div>
+      <h5 class="fw-bold text-dark mb-1">No crop milestones active yet.</h5>
+      <p class="text-muted small mb-3">Select a crop from your farm records to begin tracking the recommended 9-stage agronomic lifecycle protocol.</p>
+      <button class="btn btn-success btn-sm px-4 py-2 fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#newCropMilestoneModal">
+        <i class="bi bi-plus-lg me-1"></i> Track First Crop
+      </button>
+    </div>
+  {% endif %}
+
+</div>
+
+<!-- Modal: New Crop Tracker -->
+<div class="modal fade" id="newCropMilestoneModal" tabindex="-1" aria-labelledby="newCropMilestoneModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow" style="border-radius: 12px; overflow: hidden;">
+      <form method="POST" action="{{ url_for('progress.add_crop_milestones') }}">
+        <div class="modal-header bg-dark text-white py-3 px-4">
+          <h6 class="modal-title fw-bold" id="newCropMilestoneModalLabel">
+            <i class="bi bi-calendar-plus me-1 text-success"></i> Initialize Crop Lifecycle Tracker
+          </h6>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-4">
+          <div class="mb-3">
+            <label for="trackCrop" class="form-label fw-semibold small text-dark">Crop Name <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="trackCrop" name="crop_name" placeholder="e.g. Wheat, Rice, Cotton, Tomato" list="cropList" required>
+            <datalist id="cropList">
+              {% for cn in crop_names %}
+              <option value="{{ cn }}">
+              {% endfor %}
+            </datalist>
+          </div>
+          <div class="mb-2">
+            <label for="trackSeason" class="form-label fw-semibold small text-dark">Cultivation Season</label>
+            <select class="form-select" id="trackSeason" name="season">
+              <option value="Kharif 2026" selected>Kharif 2026 (Monsoon)</option>
+              <option value="Rabi 2026-27">Rabi 2026-27 (Winter)</option>
+              <option value="Zaid 2026">Zaid 2026 (Summer)</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer bg-light py-2 px-4 border-top">
+          <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-sm btn-success fw-semibold px-4">Start Tracking</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

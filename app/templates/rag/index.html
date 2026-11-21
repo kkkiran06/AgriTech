@@ -1,0 +1,264 @@
+{% extends "base.html" %}
+
+{% block title %}AI Agri-Advisor & Voice Assistant - KrishiMitra{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <!-- Header -->
+  <div class="card border-0 shadow-sm p-4 mb-4 bg-white" style="border-radius: 12px; border: 1px solid #e2e8f0 !important;">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+      <div>
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 small">
+            <i class="bi bi-stars me-1"></i> Gemini AI &amp; ICAR Knowledge Base
+          </span>
+          <span class="badge bg-light text-muted border small">Voice &amp; Text</span>
+        </div>
+        <h2 class="fw-bold mb-1 text-dark" style="letter-spacing: -0.5px;">
+          Agricultural AI Knowledge &amp; Voice Assistant
+        </h2>
+        <p class="text-muted small mb-0">
+          Ask questions in English or Indian regional languages about crop cultivation, pest remedies, fertilizers, or government schemes.
+        </p>
+      </div>
+
+      <!-- Language Selector for Speech -->
+      <div class="d-flex align-items-center gap-2">
+        <label for="voiceLang" class="form-label mb-0 small text-muted text-nowrap">Voice Language:</label>
+        <select class="form-select form-select-sm" id="voiceLang" style="width: auto; border-radius: 8px;">
+          <option value="en-IN" selected>English (India)</option>
+          <option value="hi-IN">हिन्दी (Hindi)</option>
+          <option value="kn-IN">ಕನ್ನಡ (Kannada)</option>
+          <option value="te-IN">తెలుగు (Telugu)</option>
+          <option value="ta-IN">தமிழ் (Tamil)</option>
+          <option value="mr-IN">मराठी (Marathi)</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Left Column: Chat & Voice Interface -->
+    <div class="col-lg-8">
+      <div class="card border-0 shadow-sm bg-white d-flex flex-column" style="border-radius: 12px; border: 1px solid #e2e8f0 !important; min-height: 520px;">
+        
+        <!-- Chat Message Area -->
+        <div class="card-body p-4 overflow-y-auto flex-grow-1" id="chatArea" style="max-height: 480px;">
+          <!-- Welcome message -->
+          <div class="d-flex gap-2 mb-3">
+            <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 32px; height: 32px;">
+              <i class="bi bi-robot"></i>
+            </div>
+            <div class="p-3 bg-light rounded-3 border" style="max-width: 85%;">
+              <p class="mb-1 text-dark small" style="line-height: 1.5;">
+                Namaste! I am your KrishiMitra Agronomy Assistant. Ask me anything about crop diseases, pest remedies, fertilizer schedules, or farming advice. You can speak using the microphone or type below.
+              </p>
+              <div class="d-flex gap-2 flex-wrap mt-2">
+                <button class="btn btn-outline-secondary btn-sm py-0 px-2" style="font-size: 0.75rem;" onclick="askPreset('How to control Paddy Blast disease?')">
+                  Paddy Blast Treatment
+                </button>
+                <button class="btn btn-outline-secondary btn-sm py-0 px-2" style="font-size: 0.75rem;" onclick="askPreset('What is the best fertilizer for wheat?')">
+                  Wheat Fertilizer
+                </button>
+                <button class="btn btn-outline-secondary btn-sm py-0 px-2" style="font-size: 0.75rem;" onclick="askPreset('Cotton pink bollworm management')">
+                  Cotton Bollworm
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Input Bar -->
+        <div class="p-3 border-top bg-light" style="border-radius: 0 0 12px 12px;">
+          <form id="askForm" onsubmit="handleSend(event)" class="d-flex gap-2">
+            <button type="button" class="btn btn-outline-secondary px-3" id="micBtn" onclick="toggleVoice()" title="Click to speak">
+              <i class="bi bi-mic-fill" id="micIcon"></i>
+            </button>
+            <input type="text" class="form-control" id="queryInput" placeholder="Type or speak your farming question..." autocomplete="off" required>
+            <button type="submit" class="btn btn-success px-4 fw-semibold" id="sendBtn">
+              <i class="bi bi-send-fill me-1"></i> Send
+            </button>
+          </form>
+          <div id="voiceStatus" class="small text-muted mt-1" style="font-size: 0.75rem; display: none;">
+            <span class="spinner-grow spinner-grow-sm text-danger me-1"></span> Listening... speak clearly into your microphone
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Right Column: Agronomic Knowledge Topics -->
+    <div class="col-lg-4">
+      <div class="card border-0 shadow-sm p-4 bg-white" style="border-radius: 12px; border: 1px solid #e2e8f0 !important;">
+        <h6 class="fw-bold text-dark mb-3 small text-uppercase" style="letter-spacing: 0.5px;">
+          <i class="bi bi-journal-bookmark text-success me-1"></i> ICAR Knowledge Topics
+        </h6>
+        <div class="list-group list-group-flush small">
+          {% for t in topics %}
+          <a href="javascript:void(0)" onclick="askPreset('Tell me about {{ t.title }}')" class="list-group-item list-group-item-action px-0 py-2 border-bottom">
+            <div class="d-flex justify-content-between align-items-start mb-1">
+              <strong class="text-dark">{{ t.crop }}</strong>
+              <span class="badge bg-light text-muted border" style="font-size: 0.7rem;">{{ t.category }}</span>
+            </div>
+            <div class="text-muted text-truncate" style="font-size: 0.78rem;">{{ t.title }}</div>
+          </a>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+let recognition = null;
+let isRecording = false;
+
+// Initialize Speech Recognition if supported
+if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+  const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  recognition = new SpeechRec();
+  recognition.continuous = false;
+  recognition.interimResults = false;
+
+  recognition.onresult = function(event) {
+    const transcript = event.results[0][0].transcript;
+    document.getElementById('queryInput').value = transcript;
+    stopVoice();
+    document.getElementById('askForm').dispatchEvent(new Event('submit'));
+  };
+
+  recognition.onerror = function() {
+    stopVoice();
+  };
+
+  recognition.onend = function() {
+    stopVoice();
+  };
+}
+
+function toggleVoice() {
+  if (!recognition) {
+    alert("Speech recognition is not supported in this browser. Please use Chrome or Edge.");
+    return;
+  }
+  if (!isRecording) {
+    const lang = document.getElementById('voiceLang').value;
+    recognition.lang = lang;
+    recognition.start();
+    isRecording = true;
+    document.getElementById('micBtn').classList.remove('btn-outline-secondary');
+    document.getElementById('micBtn').classList.add('btn-danger');
+    document.getElementById('voiceStatus').style.display = 'block';
+  } else {
+    stopVoice();
+  }
+}
+
+function stopVoice() {
+  if (recognition && isRecording) {
+    recognition.stop();
+  }
+  isRecording = false;
+  document.getElementById('micBtn').classList.remove('btn-danger');
+  document.getElementById('micBtn').classList.add('btn-outline-secondary');
+  document.getElementById('voiceStatus').style.display = 'none';
+}
+
+function askPreset(question) {
+  document.getElementById('queryInput').value = question;
+  document.getElementById('askForm').dispatchEvent(new Event('submit'));
+}
+
+async function handleSend(e) {
+  e.preventDefault();
+  const input = document.getElementById('queryInput');
+  const query = input.value.trim();
+  if (!query) return;
+
+  const chatArea = document.getElementById('chatArea');
+
+  // Append user message
+  const userHtml = `
+    <div class="d-flex justify-content-end mb-3">
+      <div class="p-3 bg-success text-white rounded-3 shadow-sm" style="max-width: 80%;">
+        <div class="small fw-semibold mb-1">You</div>
+        <div style="line-height: 1.4;">${escapeHtml(query)}</div>
+      </div>
+    </div>
+  `;
+  chatArea.innerHTML += userHtml;
+  input.value = '';
+  chatArea.scrollTop = chatArea.scrollHeight;
+
+  // Append temporary loading message
+  const loadingId = 'loading-' + Date.now();
+  const loadingHtml = `
+    <div class="d-flex gap-2 mb-3" id="${loadingId}">
+      <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 32px; height: 32px;">
+        <i class="bi bi-robot"></i>
+      </div>
+      <div class="p-3 bg-light rounded-3 border">
+        <span class="spinner-border spinner-border-sm text-success me-2"></span> Thinking with Gemini AI...
+      </div>
+    </div>
+  `;
+  chatArea.innerHTML += loadingHtml;
+  chatArea.scrollTop = chatArea.scrollHeight;
+
+  try {
+    const response = await fetch('/rag/ask', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: query })
+    });
+    const data = await response.json();
+
+    document.getElementById(loadingId).remove();
+
+    const formattedAnswer = data.answer.replace(/\n/g, '<br>');
+    const botHtml = `
+      <div class="d-flex gap-2 mb-3">
+        <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 32px; height: 32px;">
+          <i class="bi bi-robot"></i>
+        </div>
+        <div class="p-3 bg-light rounded-3 border" style="max-width: 85%;">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span class="badge bg-success-subtle text-success border small">${data.provider || 'KrishiMitra AI'}</span>
+            <button class="btn btn-sm btn-link text-muted p-0" onclick="speakText(this)" data-text="${escapeHtml(data.answer)}" title="Read Aloud">
+              <i class="bi bi-volume-up fs-6"></i>
+            </button>
+          </div>
+          <div class="small text-dark" style="line-height: 1.6;">${formattedAnswer}</div>
+          ${data.sources && data.sources.length ? `<div class="mt-2 pt-2 border-top text-muted" style="font-size:0.72rem;"><i class="bi bi-shield-check text-success me-1"></i>Sources: ${data.sources.map(s => typeof s === 'string' ? s : s.title).join(' &bull; ')}</div>` : ''}
+        </div>
+      </div>
+    `;
+    chatArea.innerHTML += botHtml;
+    chatArea.scrollTop = chatArea.scrollHeight;
+
+  } catch(err) {
+    document.getElementById(loadingId).remove();
+    chatArea.innerHTML += `<div class="alert alert-danger py-2 small mb-3">Could not fetch answer: ${err.message}</div>`;
+  }
+}
+
+function speakText(btn) {
+  const text = btn.getAttribute('data-text');
+  if (!text || !('speechSynthesis' in window)) return;
+  window.speechSynthesis.cancel();
+  const lang = document.getElementById('voiceLang').value;
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.lang = lang;
+  utter.rate = 0.95;
+  window.speechSynthesis.speak(utter);
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.innerText = text;
+  return div.innerHTML;
+}
+</script>
+{% endblock %}

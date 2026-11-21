@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+
+{% block title %}Expert Advisory & Consultations - KrishiMitra{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <!-- Header -->
+  <div class="card border-0 shadow-sm p-4 mb-4 bg-white" style="border-radius: 12px; border: 1px solid #e2e8f0 !important;">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+      <div>
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 small">
+            <i class="bi bi-patch-check-fill me-1"></i> ICAR &amp; University Agronomists
+          </span>
+          <span class="badge bg-light text-muted border small">Direct Scientist Consultation</span>
+        </div>
+        <h2 class="fw-bold mb-1 text-dark" style="letter-spacing: -0.5px;">
+          Agricultural Expert Advisory &amp; Consultations
+        </h2>
+        <p class="text-muted small mb-0">
+          Book personalized advisory tickets with certified university scientists, agronomists, and soil pathologists.
+        </p>
+      </div>
+
+      <div>
+        <button class="btn btn-success btn-sm px-4 py-2 fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#newConsultationModal">
+          <i class="bi bi-plus-lg me-1"></i> Book Consultation
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Verified Experts Directory -->
+  <div class="mb-4">
+    <h6 class="fw-bold text-dark mb-3 small text-uppercase" style="letter-spacing: 0.5px;">
+      Verified Panel of Agricultural Scientists
+    </h6>
+    <div class="row g-3">
+      {% for exp in experts %}
+      <div class="col-md-4">
+        <div class="card border-0 shadow-sm p-3 h-100 bg-white" style="border-radius: 12px; border: 1px solid #e2e8f0 !important;">
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width: 36px; height: 36px;">
+              {{ exp.name[3:5].strip() }}
+            </div>
+            <div>
+              <h6 class="fw-bold text-dark mb-0">{{ exp.name }}</h6>
+              <small class="text-success fw-semibold"><i class="bi bi-shield-check me-1"></i>Verified Scientist</small>
+            </div>
+          </div>
+          <div class="small text-muted mb-2">{{ exp.title }}</div>
+          <div class="p-2 bg-light rounded-2 border small mb-2">
+            <div class="text-truncate"><strong>Specialization:</strong> {{ exp.specialization }}</div>
+            <div><strong>Experience:</strong> {{ exp.experience }}</div>
+          </div>
+          <div class="text-muted small mt-auto" style="font-size: 0.75rem;">
+            <i class="bi bi-clock me-1 text-secondary"></i> {{ exp.availability }}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Farmer's Consultation Tickets -->
+  <div class="card border-0 shadow-sm bg-white" style="border-radius: 12px; border: 1px solid #e2e8f0 !important;">
+    <div class="p-3 border-bottom bg-light d-flex justify-content-between align-items-center">
+      <span class="small fw-semibold text-muted text-uppercase" style="letter-spacing: 0.5px;">
+        My Consultation Tickets ({{ consultations|length }})
+      </span>
+      <button class="btn btn-outline-success btn-sm" data-bs-toggle="modal" data-bs-target="#newConsultationModal">
+        + New Ticket
+      </button>
+    </div>
+
+    <div class="list-group list-group-flush">
+      {% if consultations and consultations|length > 0 %}
+        {% for c in consultations %}
+        <div class="list-group-item p-4 border-bottom">
+          <div class="d-flex justify-content-between align-items-start gap-3">
+            <div class="flex-grow-1">
+              <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="badge bg-light text-secondary border small">Ticket #{{ c['id'] }}</span>
+                <span class="badge bg-light text-dark border small">{{ c['category'] }}</span>
+                <span class="badge {% if c['urgency'] in ['High', 'Emergency'] %}bg-danger-subtle text-danger border-danger-subtle{% else %}bg-warning-subtle text-warning border-warning-subtle{% endif %} small">
+                  {{ c['urgency'] }} Priority
+                </span>
+                <span class="text-muted small">&bull; Opened {{ c['created_at'][:10] }}</span>
+              </div>
+              <h5 class="fw-bold mb-1">
+                <a href="{{ url_for('consultations.detail', consultation_id=c['id']) }}" class="text-dark text-decoration-none hover-success">
+                  {{ c['subject'] }}
+                </a>
+              </h5>
+              <p class="text-muted small mb-2" style="line-height: 1.5;">
+                {{ c['description']|truncate(160) }}
+              </p>
+              <div class="small text-muted">
+                <i class="bi bi-person-check text-success me-1"></i> Assigned Expert: <strong class="text-dark">{{ c['expert_name'] }}</strong>
+              </div>
+            </div>
+
+            <div class="d-flex flex-column align-items-end flex-shrink-0">
+              <span class="badge {% if c['status'] == 'Resolved' %}bg-success-subtle text-success{% else %}bg-primary-subtle text-primary{% endif %} border px-3 py-1 mb-2">
+                {{ c['status'] }}
+              </span>
+              <a href="{{ url_for('consultations.detail', consultation_id=c['id']) }}" class="btn btn-outline-secondary btn-sm py-1 px-3">
+                View Thread &rsaquo;
+              </a>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div class="text-center py-5 text-muted">
+          <i class="bi bi-chat-heart fs-2 d-block mb-2 text-secondary opacity-50"></i>
+          <h6>No active consultation tickets.</h6>
+          <p class="small text-muted">Submit an inquiry with crop photos or symptoms to get expert scientist feedback.</p>
+          <button class="btn btn-success btn-sm px-4 py-2" data-bs-toggle="modal" data-bs-target="#newConsultationModal">
+            Book First Consultation
+          </button>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+
+<!-- Modal: New Consultation -->
+<div class="modal fade" id="newConsultationModal" tabindex="-1" aria-labelledby="newConsultationModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow" style="border-radius: 12px; overflow: hidden;">
+      <form method="POST" action="{{ url_for('consultations.create_consultation') }}">
+        <div class="modal-header bg-dark text-white py-3 px-4">
+          <h6 class="modal-title fw-bold" id="newConsultationModalLabel">
+            <i class="bi bi-patch-question me-1 text-success"></i> Book Expert Advisory Ticket
+          </h6>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-4">
+          <div class="mb-3">
+            <label for="conExpert" class="form-label fw-semibold small text-dark">Select Advisory Expert</label>
+            <select class="form-select" id="conExpert" name="expert_name">
+              {% for exp in experts %}
+              <option value="{{ exp.name }} ({{ exp.title }})">{{ exp.name }} — {{ exp.specialization }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <label for="conCategory" class="form-label fw-semibold small text-dark">Problem Category</label>
+              <select class="form-select" id="conCategory" name="category">
+                <option value="Crop Disease" selected>Crop Disease &amp; Fungal Spot</option>
+                <option value="Pest Outbreak">Pest &amp; Insect Infestation</option>
+                <option value="Soil & Fertilizer">Soil Health &amp; Deficiency</option>
+                <option value="Irrigation & Drainage">Irrigation &amp; Water Management</option>
+              </select>
+            </div>
+            <div class="col-6">
+              <label for="conUrgency" class="form-label fw-semibold small text-dark">Urgency Level</label>
+              <select class="form-select" id="conUrgency" name="urgency">
+                <option value="Low">Low (General Inquiry)</option>
+                <option value="Medium" selected>Medium (Moderate Loss)</option>
+                <option value="High">High (Rapid Spread)</option>
+                <option value="Emergency">Emergency (Severe Damage)</option>
+              </select>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label for="conSubject" class="form-label fw-semibold small text-dark">Problem Subject <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="conSubject" name="subject" placeholder="e.g. Unexplained yellowing and leaf curl on 2-acre Tomato" required minlength="5">
+          </div>
+          <div class="mb-2">
+            <label for="conDescription" class="form-label fw-semibold small text-dark">Detailed Description <span class="text-danger">*</span></label>
+            <textarea class="form-control" id="conDescription" name="description" rows="4" placeholder="Mention crop age, soil type, weather during onset, inputs already sprayed..." required minlength="10"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer bg-light py-2 px-4 border-top">
+          <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-sm btn-success fw-semibold px-4">Submit Consultation</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

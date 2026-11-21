@@ -117,3 +117,152 @@ CREATE TABLE IF NOT EXISTS farming_records (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (farmer_id) REFERENCES farmers(id) ON DELETE CASCADE
 );
+
+-- 9. Multi-Parcel Farm Management
+CREATE TABLE IF NOT EXISTS farms (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    farmer_id INTEGER NOT NULL,
+    name TEXT NOT NULL,
+    state TEXT NOT NULL DEFAULT 'Karnataka',
+    district TEXT NOT NULL,
+    taluk TEXT,
+    village TEXT,
+    survey_number TEXT,
+    latitude REAL,
+    longitude REAL,
+    total_area REAL NOT NULL DEFAULT 1.0,
+    area_unit TEXT DEFAULT 'acres',
+    soil_type TEXT DEFAULT 'Red Sandy Loam',
+    water_source TEXT DEFAULT 'Borewell',
+    irrigation_type TEXT DEFAULT 'Drip Irrigation',
+    ownership_type TEXT DEFAULT 'Owned',
+    notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (farmer_id) REFERENCES farmers(id) ON DELETE CASCADE
+);
+
+-- 10. Farm Financial Management (Expenses & Income)
+CREATE TABLE IF NOT EXISTS farm_expenses (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    farmer_id INTEGER NOT NULL,
+    farm_id INTEGER,
+    category TEXT NOT NULL,
+    description TEXT NOT NULL,
+    amount REAL NOT NULL,
+    expense_date TEXT NOT NULL,
+    season TEXT DEFAULT 'Kharif 2026',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (farmer_id) REFERENCES farmers(id) ON DELETE CASCADE,
+    FOREIGN KEY (farm_id) REFERENCES farms(id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS farm_income (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    farmer_id INTEGER NOT NULL,
+    farm_id INTEGER,
+    source TEXT NOT NULL,
+    description TEXT NOT NULL,
+    amount REAL NOT NULL,
+    income_date TEXT NOT NULL,
+    season TEXT DEFAULT 'Kharif 2026',
+    quantity_quintal REAL,
+    price_per_quintal REAL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (farmer_id) REFERENCES farmers(id) ON DELETE CASCADE,
+    FOREIGN KEY (farm_id) REFERENCES farms(id) ON DELETE SET NULL
+);
+
+-- 11. Community Q&A Forum
+CREATE TABLE IF NOT EXISTS community_posts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    farmer_id INTEGER NOT NULL,
+    title TEXT NOT NULL,
+    body TEXT NOT NULL,
+    category TEXT NOT NULL DEFAULT 'General',
+    tags TEXT,
+    upvotes INTEGER DEFAULT 0,
+    views INTEGER DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (farmer_id) REFERENCES farmers(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS community_replies (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    post_id INTEGER NOT NULL,
+    farmer_id INTEGER NOT NULL,
+    body TEXT NOT NULL,
+    is_expert_verified INTEGER DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (post_id) REFERENCES community_posts(id) ON DELETE CASCADE,
+    FOREIGN KEY (farmer_id) REFERENCES farmers(id) ON DELETE CASCADE
+);
+
+-- 12. Expert Consultations
+CREATE TABLE IF NOT EXISTS consultations (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    farmer_id INTEGER NOT NULL,
+    expert_name TEXT DEFAULT 'Dr. S. Patil (Senior Agronomist, UAS)',
+    subject TEXT NOT NULL,
+    description TEXT NOT NULL,
+    category TEXT DEFAULT 'Crop Disease',
+    urgency TEXT DEFAULT 'Medium',
+    status TEXT DEFAULT 'Open',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (farmer_id) REFERENCES farmers(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS consultation_messages (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    consultation_id INTEGER NOT NULL,
+    sender_role TEXT NOT NULL,
+    sender_name TEXT NOT NULL,
+    message TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (consultation_id) REFERENCES consultations(id) ON DELETE CASCADE
+);
+
+-- 13. Produce Marketplace (Direct-to-Buyer / Direct-to-Consumer)
+CREATE TABLE IF NOT EXISTS produce_listings (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    farmer_id INTEGER NOT NULL,
+    commodity TEXT NOT NULL,
+    variety TEXT,
+    quantity_quintal REAL NOT NULL,
+    expected_price REAL NOT NULL,
+    district TEXT NOT NULL,
+    state TEXT NOT NULL,
+    harvest_date TEXT,
+    quality_grade TEXT DEFAULT 'Grade A',
+    is_organic INTEGER DEFAULT 0,
+    status TEXT DEFAULT 'Available',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (farmer_id) REFERENCES farmers(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS produce_orders (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    listing_id INTEGER NOT NULL,
+    buyer_name TEXT NOT NULL,
+    buyer_contact TEXT NOT NULL,
+    quantity_quintal REAL NOT NULL,
+    offered_price REAL NOT NULL,
+    message TEXT,
+    status TEXT DEFAULT 'Pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (listing_id) REFERENCES produce_listings(id) ON DELETE CASCADE
+);
+
+-- 14. Seasonal Milestones Tracking
+CREATE TABLE IF NOT EXISTS farmer_milestones (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    farmer_id INTEGER NOT NULL,
+    crop_name TEXT NOT NULL,
+    season TEXT NOT NULL,
+    stage_name TEXT NOT NULL,
+    completed INTEGER DEFAULT 0,
+    completed_date TEXT,
+    notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (farmer_id) REFERENCES farmers(id) ON DELETE CASCADE
+);

@@ -109,13 +109,72 @@ def diagnose():
         import base64 as _b64
         image_b64 = _b64.b64encode(image_bytes).decode('utf-8')
 
-    # ── 2. Run Gemini Multimodal Vision Prediction ────────────
-    lang = session.get('lang', 'en')
-    try:
-        analysis = analyze_crop_or_soil(image_bytes, target_hint=scan_type, language=lang)
-    except Exception as exc:
-        current_app.logger.error(f"Gemini Vision prediction exception: {exc}")
-        analysis = None
+    # ── 2. Run AI Prediction (Gemini Vision or AgriLeafCNN PyTorch) ────────────
+    ai_engine = request.form.get('ai_engine', 'auto')
+    analysis = None
+
+    # If PyTorch selected explicitly, or if leaf scan requested when Gemini is inactive
+    if ai_engine == 'pytorch' or (ai_engine == 'auto' and scan_type == 'leaf' and not get_gemini_api_key()):
+        try:
+            from app.crop_ai.classifier import crop_classifier
+            valid, msg, img = crop_classifier.validate_image(image_bytes)
+            if valid and img:
+                res = crop_classifier.predict(img)
+                is_healthy = res.get('is_healthy', False)
+                analysis = {
+                    'scan_type': 'leaf',
+                    'subject_name': res.get('crop', 'Crop Leaf'),
+                    'health_status': res.get('disease_name', 'Diagnosed Condition'),
+                    'confidence': res.get('confidence_percentage', 85),
+                    'severity': res.get('severity', 'Moderate'),
+                    'visual_analysis': " ".join(res.get('symptoms', [])) + (f" (Vernacular: {res.get('vernacular_name', '')})" if res.get('vernacular_name') else ''),
+                    'organic_treatment': " ".join(res.get('safe_treatment_organic', [])) or "Apply organic neem cake and bio-pesticides.",
+                    'chemical_treatment': " ".join(res.get('chemical_treatment', [])) or "Consult local KVK for certified agrochemicals.",
+                    'npk_advice': 'Maintain balanced foliar nutrition and optimal irrigation.',
+                    'prevention_tips': " ".join(res.get('prevention', [])) or "Field sanitation and crop rotation.",
+                    'suitable_crops': res.get('crop', ''),
+                    'emoji': '🌿' if is_healthy else '🍂',
+                    'ai_engine': 'AgriLeafCNN (Offline Deep Neural Network)',
+                    'mode': 'pytorch_cnn',
+                }
+        except Exception as exc:
+            current_app.logger.error(f"PyTorch prediction error: {exc}")
+
+    # Primary or fallback: Gemini Multimodal Vision Prediction
+    if not analysis:
+        lang = session.get('lang', 'en')
+        try:
+            analysis = analyze_crop_or_soil(image_bytes, target_hint=scan_type, language=lang)
+        except Exception as exc:
+            current_app.logger.error(f"Gemini Vision prediction exception: {exc}")
+            analysis = None
+
+    # Secondary fallback to PyTorch if Gemini failed and scan target is a leaf
+    if not analysis and scan_type != 'soil':
+        try:
+            from app.crop_ai.classifier import crop_classifier
+            valid, msg, img = crop_classifier.validate_image(image_bytes)
+            if valid and img:
+                res = crop_classifier.predict(img)
+                is_healthy = res.get('is_healthy', False)
+                analysis = {
+                    'scan_type': 'leaf',
+                    'subject_name': res.get('crop', 'Crop Leaf'),
+                    'health_status': res.get('disease_name', 'Diagnosed Condition'),
+                    'confidence': res.get('confidence_percentage', 85),
+                    'severity': res.get('severity', 'Moderate'),
+                    'visual_analysis': " ".join(res.get('symptoms', [])),
+                    'organic_treatment': " ".join(res.get('safe_treatment_organic', [])),
+                    'chemical_treatment': " ".join(res.get('chemical_treatment', [])),
+                    'npk_advice': 'Maintain balanced nutrition.',
+                    'prevention_tips': " ".join(res.get('prevention', [])),
+                    'suitable_crops': res.get('crop', ''),
+                    'emoji': '🌿' if is_healthy else '🍂',
+                    'ai_engine': 'AgriLeafCNN (Offline PyTorch Fallback)',
+                    'mode': 'pytorch_cnn',
+                }
+        except Exception:
+            pass
 
     if not analysis:
         flash('AI analysis error. Please try again with a clearer image.', 'danger')
