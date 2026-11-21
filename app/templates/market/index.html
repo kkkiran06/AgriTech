@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+
+{% block title %}APMC Mandi Market Prices - KrishiMitra{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <!-- Header -->
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-2">
+    <div>
+      <h2 class="fw-bold text-success mb-1">
+        <span class="me-2">📊</span>Agricultural Mandi Market Rates
+      </h2>
+      <p class="text-muted mb-0">Daily commodity prices across Indian APMC mandis. Compare prices to maximize your crop revenue.</p>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <span class="badge-sample"><i class="bi bi-patch-check me-1"></i> Verified Benchmark APMC Data</span>
+      <span class="badge bg-light text-secondary border">Updated: 20 Nov 2026</span>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="farm-card p-3 mb-4">
+    <form method="GET" action="{{ url_for('market.index') }}" class="row g-2 align-items-end">
+      <div class="col-md-5">
+        <label for="commoditySelect" class="form-label fw-semibold small text-secondary">Select Commodity</label>
+        <select class="form-select" id="commoditySelect" name="commodity">
+          <option value="">All Commodities</option>
+          {% for c in commodities %}
+            <option value="{{ c }}" {% if selected_commodity == c %}selected{% endif %}>{{ c }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-5">
+        <label for="stateSelect" class="form-label fw-semibold small text-secondary">Filter by State</label>
+        <select class="form-select" id="stateSelect" name="state">
+          <option value="">All States</option>
+          {% for s in states %}
+            <option value="{{ s }}" {% if selected_state == s %}selected{% endif %}>{{ s }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-2 d-flex gap-2">
+        <button type="submit" class="btn btn-agri w-100 py-2">
+          <i class="bi bi-funnel me-1"></i> Filter
+        </button>
+        {% if selected_commodity or selected_state %}
+          <a href="{{ url_for('market.index') }}" class="btn btn-outline-secondary py-2" title="Clear Filters">
+            <i class="bi bi-arrow-counterclockwise"></i>
+          </a>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+
+  <!-- Price Comparison Highlight Cards (for popular commodities) -->
+  {% if not selected_commodity and not selected_state %}
+  <div class="row g-3 mb-4">
+    <div class="col-md-4">
+      <div class="farm-card p-3 border-success">
+        <div class="d-flex justify-content-between align-items-center mb-1">
+          <h6 class="fw-bold text-success mb-0">Wheat Price Comparison</h6>
+          <span class="badge bg-success-subtle text-success">3 Mandis</span>
+        </div>
+        <small class="text-muted d-block mb-2">Highest Rate in: <strong>Indore Mandi (₹2,800/Qtl)</strong></small>
+        <div class="small text-secondary">
+          Khanna: ₹2,520 &bull; Kota: ₹2,350 &bull; Indore: ₹2,650
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="farm-card p-3 border-primary">
+        <div class="d-flex justify-content-between align-items-center mb-1">
+          <h6 class="fw-bold text-primary mb-0">Cotton Price Comparison</h6>
+          <span class="badge bg-primary-subtle text-primary">2 Mandis</span>
+        </div>
+        <small class="text-muted d-block mb-2">Highest Rate in: <strong>Adilabad APMC (₹7,400/Qtl)</strong></small>
+        <div class="small text-secondary">
+          Rajkot: ₹7,150 &bull; Adilabad: ₹7,400 (Long Staple)
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="farm-card p-3 border-warning">
+        <div class="d-flex justify-content-between align-items-center mb-1">
+          <h6 class="fw-bold text-warning-emphasis mb-0">Basmati Paddy Highlight</h6>
+          <span class="badge bg-warning-subtle text-warning-emphasis">Premium</span>
+        </div>
+        <small class="text-muted d-block mb-2">Karnal Mandi: <strong>₹4,200 Modal Rate</strong></small>
+        <div class="small text-secondary">
+          Min: ₹3,800 &bull; Max: ₹4,450 / Quintal
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Main Market Prices Table -->
+  <div class="farm-card">
+    <div class="card-header-agri d-flex justify-content-between align-items-center">
+      <span class="fw-bold"><i class="bi bi-table me-2"></i>APMC Mandi Quotations</span>
+      <span class="small text-muted">{{ prices|length }} Market Quotations Found</span>
+    </div>
+    <div class="p-0">
+      {% if prices %}
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr class="small text-secondary">
+                <th class="ps-4">Commodity</th>
+                <th>Variety</th>
+                <th>Mandi / Market</th>
+                <th>District, State</th>
+                <th class="text-end">Min Price</th>
+                <th class="text-end">Max Price</th>
+                <th class="text-end pe-4">Modal Price</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for p in prices %}
+              <tr>
+                <td class="ps-4">
+                  <strong class="text-success">{{ p['commodity'] }}</strong>
+                </td>
+                <td><span class="badge bg-light text-secondary border">{{ p['variety'] }}</span></td>
+                <td><strong>{{ p['market'] }}</strong></td>
+                <td>{{ p['district'] }}, <span class="text-muted">{{ p['state'] }}</span></td>
+                <td class="text-end font-monospace text-secondary">₹{{ "%.0f"|format(p['min_price']) }}</td>
+                <td class="text-end font-monospace text-secondary">₹{{ "%.0f"|format(p['max_price']) }}</td>
+                <td class="text-end pe-4">
+                  <span class="fs-6 fw-bold text-success font-monospace">₹{{ "%.0f"|format(p['modal_price']) }}</span>
+                  <small class="text-muted d-block" style="font-size: 0.75rem;">/ Quintal</small>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="p-5 text-center">
+          <i class="bi bi-search text-muted display-4 mb-2"></i>
+          <h5 class="fw-bold text-dark">No Market Quotations Match Your Filter</h5>
+          <p class="text-muted small">Try selecting another commodity or reset the filters.</p>
+          <a href="{{ url_for('market.index') }}" class="btn btn-agri btn-sm">Reset All Filters</a>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="mt-4 p-3 rounded bg-light border text-muted small d-flex align-items-center gap-2">
+    <i class="bi bi-info-circle-fill text-info fs-5"></i>
+    <div>
+      <strong>About Market Quotations:</strong> Prices reflect standard modal rates in Indian Rupees (₹) per Quintal (100 Kilograms) reported from regulated Agriculture Produce Market Committee (APMC) yards. Rates may vary slightly based on moisture percentage and grain grade.
+    </div>
+  </div>
+</div>
+{% endblock %}
