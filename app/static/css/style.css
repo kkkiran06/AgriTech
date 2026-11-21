@@ -1,0 +1,163 @@
+/* KrishiMitra - Agricultural Theme Stylesheet */
+:root {
+  --primary-green: #2e7d32;
+  --primary-dark: #1b5e20;
+  --primary-light: #4caf50;
+  --accent-gold: #f9a825;
+  --earth-brown: #5d4037;
+  --bg-light: #f7f9f6;
+  --card-bg: #ffffff;
+  --text-dark: #263238;
+  --text-muted: #607d8b;
+  --border-color: #e0e6ed;
+  --success-color: #2e7d32;
+  --warning-color: #ef6c00;
+  --danger-color: #c62828;
+}
+
+body {
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background-color: var(--bg-light);
+  color: var(--text-dark);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Navbar */
+.navbar-krishi {
+  background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%);
+  box-shadow: 0 4px 12px rgba(27, 94, 32, 0.15);
+  padding: 0.75rem 1rem;
+}
+
+.navbar-brand {
+  font-weight: 700;
+  font-size: 1.4rem;
+  color: #ffffff !important;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.navbar-dark .navbar-nav .nav-link {
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+  font-size: 0.95rem;
+  padding: 0.5rem 0.85rem;
+  border-radius: 6px;
+  transition: all 0.2s ease-in-out;
+}
+
+.navbar-dark .navbar-nav .nav-link:hover,
+.navbar-dark .navbar-nav .nav-link.active {
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.18);
+}
+
+/* Cards & Components */
+.farm-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  overflow: hidden;
+}
+
+.farm-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(46, 125, 50, 0.08);
+}
+
+.card-header-agri {
+  background-color: #e8f5e9;
+  border-bottom: 1px solid #c8e6c9;
+  color: var(--primary-dark);
+  font-weight: 600;
+  padding: 1rem 1.25rem;
+}
+
+/* Buttons */
+.btn-agri {
+  background-color: var(--primary-green);
+  color: #ffffff;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  padding: 0.55rem 1.25rem;
+  transition: background-color 0.2s;
+}
+
+.btn-agri:hover {
+  background-color: var(--primary-dark);
+  color: #ffffff;
+}
+
+.btn-agri-outline {
+  border: 2px solid var(--primary-green);
+  color: var(--primary-green);
+  font-weight: 600;
+  border-radius: 8px;
+  background: transparent;
+  padding: 0.45rem 1.15rem;
+}
+
+.btn-agri-outline:hover {
+  background-color: var(--primary-green);
+  color: #ffffff;
+}
+
+/* Badges */
+.badge-crop {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  font-weight: 600;
+  padding: 0.35rem 0.65rem;
+  border-radius: 6px;
+  border: 1px solid #c8e6c9;
+}
+
+.badge-sample {
+  background-color: #fff3e0;
+  color: #e65100;
+  border: 1px solid #ffe0b2;
+  font-size: 0.8rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+}
+
+.badge-live {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid #a5d6a7;
+  font-size: 0.8rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+}
+
+/* Footer */
+footer {
+  margin-top: auto;
+  background-color: #1a271c;
+  color: #cfd8dc;
+  padding: 2.5rem 0 1.5rem;
+  border-top: 3px solid var(--primary-green);
+}
+
+footer a {
+  color: #81c784;
+  text-decoration: none;
+}
+
+footer a:hover {
+  color: #ffffff;
+  text-decoration: underline;
+}
+
+/* Responsive tweaks */
+@media (max-width: 768px) {
+  .navbar-brand {
+    font-size: 1.2rem;
+  }
+}

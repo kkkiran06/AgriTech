@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block title %}Farmer Profile - KrishiMitra{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row g-4">
+    <!-- Left Column: Farmer Overview Card -->
+    <div class="col-lg-4">
+      <div class="farm-card text-center p-4">
+        <div class="mb-3">
+          <div class="bg-success text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px; font-size: 2.2rem;">
+            🌾
+          </div>
+        </div>
+        <h4 class="fw-bold text-success mb-1">{{ farmer['name'] }}</h4>
+        <p class="text-muted small mb-2"><i class="bi bi-phone me-1"></i>+91 {{ farmer['mobile'] }}</p>
+        <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1 mb-3">
+          Verified Farmer Member
+        </span>
+
+        <hr class="my-3">
+
+        <div class="text-start">
+          <div class="mb-2 small">
+            <span class="text-muted d-block">Location:</span>
+            <strong><i class="bi bi-geo-alt text-danger me-1"></i>{{ farmer['district'] }}, {{ farmer['state'] }}</strong>
+          </div>
+          <div class="mb-2 small">
+            <span class="text-muted d-block">Land Holding:</span>
+            <strong><i class="bi bi-rulers text-primary me-1"></i>{{ farmer['farm_size'] }} Acres</strong>
+          </div>
+          <div class="mb-2 small">
+            <span class="text-muted d-block">Registered Crops:</span>
+            <strong><i class="bi bi-flower1 text-success me-1"></i>{{ farmer['primary_crops'] or 'None specified' }}</strong>
+          </div>
+          <div class="small">
+            <span class="text-muted d-block">Joined On:</span>
+            <strong><i class="bi bi-calendar-check text-info me-1"></i>{{ farmer['created_at'] }}</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Update Profile Form -->
+    <div class="col-lg-8">
+      <div class="farm-card">
+        <div class="card-header-agri d-flex align-items-center justify-content-between">
+          <span><i class="bi bi-pencil-square me-2"></i>Update Farm & Profile Information</span>
+        </div>
+        <div class="p-4">
+          <form method="POST" action="{{ url_for('auth.profile') }}">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label for="name" class="form-label fw-semibold">Full Name</label>
+                <input type="text" class="form-control" id="name" name="name" value="{{ farmer['name'] }}" required>
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Mobile Number</label>
+                <input type="text" class="form-control bg-light" value="+91 {{ farmer['mobile'] }}" readonly disabled>
+                <div class="form-text">Mobile number is linked to your login ID.</div>
+              </div>
+
+              <div class="col-md-6">
+                <label for="farm_size" class="form-label fw-semibold">Farm Size (Acres)</label>
+                <input type="number" class="form-control" id="farm_size" name="farm_size" value="{{ farmer['farm_size'] }}" step="0.1" min="0.1" required>
+              </div>
+
+              <div class="col-md-6">
+                <label for="stateSelect" class="form-label fw-semibold">State</label>
+                <select class="form-select" id="stateSelect" name="state" required onchange="updateDistricts()">
+                  {% for st in states.keys() %}
+                    <option value="{{ st }}" {% if st == farmer['state'] %}selected{% endif %}>{{ st }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <div class="col-md-6">
+                <label for="districtSelect" class="form-label fw-semibold">District</label>
+                <select class="form-select" id="districtSelect" name="district" required>
+                  <!-- Populated by JS -->
+                </select>
+              </div>
+
+              <div class="col-md-6">
+                <label for="primary_crops" class="form-label fw-semibold">Primary Crops</label>
+                <input type="text" class="form-control" id="primary_crops" name="primary_crops" value="{{ farmer['primary_crops'] or '' }}" placeholder="e.g. Wheat, Rice, Cotton">
+              </div>
+            </div>
+
+            <div class="mt-4 text-end">
+              <button type="submit" class="btn btn-agri px-4">
+                <i class="bi bi-save me-1"></i> Save Changes
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const stateDistrictMap = {{ states|tojson }};
+const currentDistrict = "{{ farmer['district'] }}";
+
+function updateDistricts() {
+  const stateSelect = document.getElementById('stateSelect');
+  const districtSelect = document.getElementById('districtSelect');
+  const selectedState = stateSelect.value;
+  const districts = stateDistrictMap[selectedState] || [];
+
+  districtSelect.innerHTML = '';
+  districts.forEach(d => {
+    const opt = document.createElement('option');
+    opt.value = d;
+    opt.textContent = d;
+    if (d === currentDistrict) {
+      opt.selected = true;
+    }
+    districtSelect.appendChild(opt);
+  });
+}
+
+document.addEventListener('DOMContentLoaded', updateDistricts);
+</script>
+{% endblock %}

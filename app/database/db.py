@@ -6,10 +6,7 @@ def get_db():
     """Establish and reuse a SQLite database connection with row dictionary access."""
     if 'db' not in g:
         db_path = current_app.config['DATABASE']
-        g.db = sqlite3.connect(
-            db_path,
-            detect_types=sqlite3.PARSE_DECLTYPES
-        )
+        g.db = sqlite3.connect(db_path)
         g.db.row_factory = sqlite3.Row
     return g.db
 

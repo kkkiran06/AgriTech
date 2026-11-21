@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block title %}Farmer Registration - KrishiMitra{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8 col-lg-7">
+      <div class="farm-card p-4 p-md-5">
+        <div class="text-center mb-4">
+          <span class="display-5">👨‍🌾</span>
+          <h3 class="fw-bold text-success mt-2">Free Farmer Registration</h3>
+          <p class="text-muted small">Join thousands of farmers receiving daily agro-advisories and market rates</p>
+        </div>
+
+        <form method="POST" action="{{ url_for('auth.register') }}" id="regForm">
+          <div class="row g-3">
+            <div class="col-md-12">
+              <label for="name" class="form-label fw-semibold">
+                <i class="bi bi-person me-1 text-success"></i> Full Name <span class="text-danger">*</span>
+              </label>
+              <input type="text" class="form-control" id="name" name="name" placeholder="e.g. Ramesh Patil" required>
+            </div>
+
+            <div class="col-md-6">
+              <label for="mobile" class="form-label fw-semibold">
+                <i class="bi bi-phone me-1 text-success"></i> Mobile Number <span class="text-danger">*</span>
+              </label>
+              <div class="input-group">
+                <span class="input-group-text bg-light">+91</span>
+                <input type="tel" class="form-control" id="mobile" name="mobile" placeholder="10-digit number" maxlength="10" pattern="[0-9]{10}" required>
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <label for="farm_size" class="form-label fw-semibold">
+                <i class="bi bi-rulers me-1 text-success"></i> Farm Land Size (Acres)
+              </label>
+              <input type="number" class="form-control" id="farm_size" name="farm_size" placeholder="e.g. 2.5" step="0.1" min="0.1" value="2.0" required>
+            </div>
+
+            <div class="col-md-6">
+              <label for="stateSelect" class="form-label fw-semibold">
+                <i class="bi bi-geo-alt me-1 text-success"></i> State <span class="text-danger">*</span>
+              </label>
+              <select class="form-select" id="stateSelect" name="state" required onchange="updateDistricts()">
+                {% for state in states.keys() %}
+                  <option value="{{ state }}" {% if state == 'Maharashtra' %}selected{% endif %}>{{ state }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="col-md-6">
+              <label for="districtSelect" class="form-label fw-semibold">
+                <i class="bi bi-pin-map me-1 text-success"></i> District <span class="text-danger">*</span>
+              </label>
+              <select class="form-select" id="districtSelect" name="district" required>
+                <!-- Populated dynamically via JS -->
+              </select>
+            </div>
+
+            <div class="col-md-12">
+              <label for="primary_crops" class="form-label fw-semibold">
+                <i class="bi bi-flower1 me-1 text-success"></i> Primary Crops Grown
+              </label>
+              <input type="text" class="form-control" id="primary_crops" name="primary_crops" placeholder="e.g. Wheat, Rice, Cotton, Tomato">
+              <div class="form-text">Comma-separated crops you actively cultivate.</div>
+            </div>
+
+            <div class="col-md-6">
+              <label for="password" class="form-label fw-semibold">
+                <i class="bi bi-lock me-1 text-success"></i> Password <span class="text-danger">*</span>
+              </label>
+              <input type="password" class="form-control" id="password" name="password" placeholder="Min 6 characters" minlength="6" required>
+            </div>
+
+            <div class="col-md-6">
+              <label for="confirm_password" class="form-label fw-semibold">
+                <i class="bi bi-lock-fill me-1 text-success"></i> Confirm Password <span class="text-danger">*</span>
+              </label>
+              <input type="password" class="form-control" id="confirm_password" name="confirm_password" placeholder="Repeat password" minlength="6" required>
+            </div>
+          </div>
+
+          <div class="mt-4">
+            <button type="submit" class="btn btn-agri w-100 py-2 fs-6 shadow-sm">
+              <i class="bi bi-check-circle me-1"></i> Complete Registration
+            </button>
+          </div>
+        </form>
+
+        <div class="mt-4 pt-3 border-top text-center small text-muted">
+          Already registered? 
+          <a href="{{ url_for('auth.login') }}" class="text-success fw-bold text-decoration-none ms-1">
+            Login here
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const stateDistrictMap = {{ states|tojson }};
+
+function updateDistricts() {
+  const stateSelect = document.getElementById('stateSelect');
+  const districtSelect = document.getElementById('districtSelect');
+  const selectedState = stateSelect.value;
+  const districts = stateDistrictMap[selectedState] || [];
+
+  districtSelect.innerHTML = '';
+  districts.forEach(d => {
+    const opt = document.createElement('option');
+    opt.value = d;
+    opt.textContent = d;
+    districtSelect.appendChild(opt);
+  });
+}
+
+// Initial populate
+document.addEventListener('DOMContentLoaded', updateDistricts);
+</script>
+{% endblock %}

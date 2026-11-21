@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+
+{% block title %}Farmer Dashboard - KrishiMitra{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <!-- Welcome Banner -->
+  <div class="card border-0 shadow-sm p-4 mb-4" style="background: linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%); color: #ffffff; border-radius: 12px;">
+    <div class="row align-items-center">
+      <div class="col-md-8">
+        <h2 class="fw-bold mb-1">
+          {% if session.get('farmer_name') %}
+            Namaste, {{ session.get('farmer_name') }}! 🌾
+          {% else %}
+            Welcome to KrishiMitra! 🌾
+          {% endif %}
+        </h2>
+        <p class="mb-0 text-white-50">
+          {% if session.get('district') %}
+            <i class="bi bi-geo-alt-fill text-warning me-1"></i> Showing agricultural updates for <strong>{{ session.get('district') }}, {{ session.get('state') }}</strong>
+          {% else %}
+            Your comprehensive digital advisor for crops, weather, mandi rates, and government schemes.
+          {% endif %}
+        </p>
+      </div>
+      <div class="col-md-4 text-md-end mt-3 mt-md-0">
+        {% if session.get('farmer_id') %}
+          <a href="{{ url_for('auth.profile') }}" class="btn btn-warning fw-semibold px-3 py-2">
+            <i class="bi bi-person-circle me-1"></i> View Farm Profile
+          </a>
+        {% else %}
+          <a href="{{ url_for('auth.register') }}" class="btn btn-warning fw-semibold px-3 py-2">
+            <i class="bi bi-person-plus me-1"></i> Register Free
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Action Grid -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <a href="{{ url_for('crops.index') }}" class="text-decoration-none">
+        <div class="farm-card p-3 text-center h-100">
+          <div class="fs-1 mb-2">🌾</div>
+          <h6 class="fw-bold text-dark mb-1">Crop Guide</h6>
+          <small class="text-muted">8 Essential Crops</small>
+        </div>
+      </a>
+    </div>
+    <div class="col-6 col-md-3">
+      <a href="{{ url_for('weather.index') }}" class="text-decoration-none">
+        <div class="farm-card p-3 text-center h-100">
+          <div class="fs-1 mb-2">🌦️</div>
+          <h6 class="fw-bold text-dark mb-1">Weather & Advisory</h6>
+          <small class="text-muted">Forecast & Spray Tips</small>
+        </div>
+      </a>
+    </div>
+    <div class="col-6 col-md-3">
+      <a href="{{ url_for('soil.index') }}" class="text-decoration-none">
+        <div class="farm-card p-3 text-center h-100">
+          <div class="fs-1 mb-2">🧪</div>
+          <h6 class="fw-bold text-dark mb-1">Fertilizer Calculator</h6>
+          <small class="text-muted">NPK Dosage Estimator</small>
+        </div>
+      </a>
+    </div>
+    <div class="col-6 col-md-3">
+      <a href="{{ url_for('market.index') }}" class="text-decoration-none">
+        <div class="farm-card p-3 text-center h-100">
+          <div class="fs-1 mb-2">📈</div>
+          <h6 class="fw-bold text-dark mb-1">Mandi Rates</h6>
+          <small class="text-muted">APMC Market Comparison</small>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <!-- Main Dashboard Sections -->
+  <div class="row g-4">
+    <!-- Left Column: Featured Crops & Disease alerts -->
+    <div class="col-lg-7">
+      <div class="farm-card mb-4">
+        <div class="card-header-agri d-flex justify-content-between align-items-center">
+          <span><i class="bi bi-flower1 me-2"></i>Crop Cultivation Quick Guide</span>
+          <a href="{{ url_for('crops.index') }}" class="small text-success text-decoration-none fw-semibold">View All</a>
+        </div>
+        <div class="p-3">
+          <div class="row g-3">
+            {% for crop in crops %}
+            <div class="col-sm-6">
+              <div class="p-3 rounded border bg-light h-100">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                  <span class="fs-3">{{ crop['icon'] }}</span>
+                  <div>
+                    <h6 class="fw-bold mb-0 text-success">{{ crop['name'] }}</h6>
+                    <small class="text-muted">{{ crop['season'] }} Season</small>
+                  </div>
+                </div>
+                <p class="small text-secondary mb-2" style="font-size: 0.85rem;">
+                  <strong>Soil:</strong> {{ crop['suitable_soil']|truncate(45) }}
+                </p>
+                <a href="{{ url_for('crops.detail', crop_id=crop['id']) }}" class="btn btn-outline-success btn-sm w-100">
+                  Cultivation Steps
+                </a>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Government Schemes Widget -->
+      <div class="farm-card">
+        <div class="card-header-agri d-flex justify-content-between align-items-center">
+          <span><i class="bi bi-award me-2"></i>Government Schemes & Subsidies</span>
+          <a href="{{ url_for('schemes.index') }}" class="small text-success text-decoration-none fw-semibold">All Schemes</a>
+        </div>
+        <div class="p-3">
+          <div class="list-group list-group-flush">
+            {% for scheme in schemes %}
+            <div class="list-group-item px-0 py-2">
+              <div class="d-flex w-100 justify-content-between align-items-start">
+                <h6 class="mb-1 fw-bold text-dark">{{ scheme['title'] }}</h6>
+                <span class="badge bg-success-subtle text-success border">{{ scheme['badge_label'] }}</span>
+              </div>
+              <p class="mb-1 small text-secondary">{{ scheme['short_desc']|truncate(120) }}</p>
+              <a href="{{ scheme['official_url'] }}" target="_blank" class="small text-success text-decoration-none">
+                <i class="bi bi-box-arrow-up-right me-1"></i> Official Portal
+              </a>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Mandi Prices & Agricultural Advisory -->
+    <div class="col-lg-5">
+      <!-- Mandi Prices Widget -->
+      <div class="farm-card mb-4">
+        <div class="card-header-agri d-flex justify-content-between align-items-center">
+          <span><i class="bi bi-graph-up-arrow me-2"></i>Latest Mandi Prices</span>
+          <a href="{{ url_for('market.index') }}" class="small text-success text-decoration-none fw-semibold">Compare</a>
+        </div>
+        <div class="p-3">
+          <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+              <thead class="table-light">
+                <tr class="small text-secondary">
+                  <th>Commodity</th>
+                  <th>Mandi</th>
+                  <th class="text-end">Modal Rate</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in commodities %}
+                <tr>
+                  <td><strong>{{ item['commodity'] }}</strong><br><small class="text-muted">{{ item['variety'] }}</small></td>
+                  <td><small>{{ item['market'] }}<br><span class="text-muted">{{ item['state'] }}</span></small></td>
+                  <td class="text-end fw-bold text-success">₹{{ "%.0f"|format(item['modal_price']) }}<br><small class="text-muted font-monospace">/Qtl</small></td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          <div class="mt-2 text-end">
+            <span class="badge-sample">Verified Benchmark Sample</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Seasonal Notification Advisory -->
+      <div class="farm-card">
+        <div class="card-header-agri">
+          <span><i class="bi bi-bell me-2"></i>Agricultural Advisory Notices</span>
+        </div>
+        <div class="p-3">
+          <div class="alert alert-info border-0 d-flex gap-2 mb-2 p-2 small">
+            <i class="bi bi-info-circle-fill text-info fs-5"></i>
+            <div>
+              <strong>Rabi Sowing Advisory:</strong> Optimum temperature window for Wheat line sowing is active. Ensure basal application of DAP/SSP.
+            </div>
+          </div>
+          <div class="alert alert-warning border-0 d-flex gap-2 mb-0 p-2 small">
+            <i class="bi bi-exclamation-triangle-fill text-warning fs-5"></i>
+            <div>
+              <strong>Pest Alert:</strong> Keep checking cotton crops for early bollworm infestation. Install pheromone traps at 5 traps/acre.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
