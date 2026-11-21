@@ -37,50 +37,77 @@
         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
           <li class="nav-item">
             <a class="nav-link" href="{{ url_for('main.dashboard') }}">
-              <i class="bi bi-speedometer2 me-1"></i> Dashboard
+              <i class="bi bi-speedometer2 me-1"></i> {{ t('nav_dashboard') }}
             </a>
           </li>
           <li class="nav-item">
             <a class="nav-link" href="{{ url_for('crops.index') }}">
-              <i class="bi bi-flower1 me-1"></i> Crop Guide
+              <i class="bi bi-flower1 me-1"></i> {{ t('nav_crops') }}
             </a>
           </li>
           <li class="nav-item">
             <a class="nav-link" href="{{ url_for('weather.index') }}">
-              <i class="bi bi-cloud-sun me-1"></i> Weather
+              <i class="bi bi-cloud-sun me-1"></i> {{ t('nav_weather') }}
             </a>
           </li>
           <li class="nav-item">
             <a class="nav-link" href="{{ url_for('soil.index') }}">
-              <i class="bi bi-calculator me-1"></i> Soil & Fertilizers
+              <i class="bi bi-calculator me-1"></i> {{ t('nav_soil') }}
             </a>
           </li>
           <li class="nav-item">
             <a class="nav-link" href="{{ url_for('diseases.index') }}">
-              <i class="bi bi-bug me-1"></i> Pest & Disease
+              <i class="bi bi-bug me-1"></i> {{ t('nav_diseases') }}
             </a>
           </li>
           <li class="nav-item">
             <a class="nav-link" href="{{ url_for('market.index') }}">
-              <i class="bi bi-graph-up-arrow me-1"></i> Mandi Prices
+              <i class="bi bi-graph-up-arrow me-1"></i> {{ t('nav_market') }}
             </a>
           </li>
           <li class="nav-item">
             <a class="nav-link" href="{{ url_for('schemes.index') }}">
-              <i class="bi bi-award me-1"></i> Govt Schemes
+              <i class="bi bi-award me-1"></i> {{ t('nav_schemes') }}
             </a>
           </li>
           <li class="nav-item">
             <a class="nav-link position-relative" href="{{ url_for('plantdoctor.index') }}"
                style="color:#ffd54f !important; font-weight:600;">
-              <i class="bi bi-search-heart me-1"></i> PlantDoctor AI
+              <i class="bi bi-search-heart me-1"></i> {{ t('nav_plantdoctor') }}
               <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size:0.6rem;">NEW</span>
             </a>
           </li>
         </ul>
 
+        <!-- Center/Right: Language Selector Dropdown -->
+        <ul class="navbar-nav me-lg-2 mb-2 mb-lg-0">
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle btn btn-sm btn-outline-warning text-white px-3 py-1 d-flex align-items-center gap-1 shadow-sm"
+               href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="border-radius: 20px; border-color: #ffd54f;">
+              <span class="fs-6">{{ supported_languages[current_lang]['flag'] if current_lang in supported_languages else '🌐' }}</span>
+              <span class="fw-bold">{{ supported_languages[current_lang]['native'] if current_lang in supported_languages else 'Language' }}</span>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="min-width: 220px; border-radius: 12px;">
+              <li>
+                <div class="px-3 py-2 border-bottom">
+                  <small class="text-success fw-bold d-block"><i class="bi bi-translate me-1"></i> क्षेत्रीय भाषाएं / Regional Languages</small>
+                </div>
+              </li>
+              {% for code, lang in supported_languages.items() %}
+              <li>
+                <a class="dropdown-item d-flex justify-content-between align-items-center py-2 {% if current_lang == code %}active bg-success text-white{% endif %}"
+                   href="{{ url_for('main.set_language', lang_code=code) }}" onclick="setGoogleLanguage('{{ code }}')">
+                  <span>{{ lang['flag'] }} {{ lang['native'] }}</span>
+                  <small class="{% if current_lang == code %}text-white-50{% else %}text-muted{% endif %} ms-2">({{ lang['name'] }})</small>
+                </a>
+              </li>
+              {% endfor %}
+            </ul>
+          </li>
+        </ul>
+
         <!-- Right Side: User Authentication -->
-        <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-lg-center">
+        <ul class="navbar-nav ms-auto ms-lg-0 mb-2 mb-lg-0 align-items-lg-center">
           {% if session.get('farmer_id') %}
             <li class="nav-item dropdown">
               <a class="nav-link dropdown-toggle text-white fw-bold d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -94,20 +121,20 @@
                     <span class="fw-semibold text-dark"><i class="bi bi-geo-alt text-danger me-1"></i>{{ session.get('district') }}, {{ session.get('state') }}</span>
                   </div>
                 </li>
-                <li><a class="dropdown-item py-2" href="{{ url_for('auth.profile') }}"><i class="bi bi-person-gear me-2"></i>Edit Profile</a></li>
+                <li><a class="dropdown-item py-2" href="{{ url_for('auth.profile') }}"><i class="bi bi-person-gear me-2"></i>{{ t('nav_profile') }}</a></li>
                 <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item text-danger py-2" href="{{ url_for('auth.logout') }}"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
+                <li><a class="dropdown-item text-danger py-2" href="{{ url_for('auth.logout') }}"><i class="bi bi-box-arrow-right me-2"></i>{{ t('nav_logout') }}</a></li>
               </ul>
             </li>
           {% else %}
             <li class="nav-item me-2">
               <a class="btn btn-outline-light btn-sm px-3" href="{{ url_for('auth.login') }}">
-                <i class="bi bi-box-arrow-in-right me-1"></i> Farmer Login
+                <i class="bi bi-box-arrow-in-right me-1"></i> {{ t('nav_login') }}
               </a>
             </li>
             <li class="nav-item mt-2 mt-lg-0">
               <a class="btn btn-warning btn-sm text-dark fw-bold px-3" href="{{ url_for('auth.register') }}">
-                <i class="bi bi-person-plus me-1"></i> Register Free
+                <i class="bi bi-person-plus me-1"></i> {{ t('nav_register') }}
               </a>
             </li>
           {% endif %}
@@ -192,6 +219,31 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <!-- Custom JS -->
   <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+  <!-- Google Translate Element & Regional Language Switcher -->
+  <div id="google_translate_element" style="display:none;"></div>
+  <script>
+    function setGoogleLanguage(langCode) {
+      if (!langCode || langCode === 'en') {
+        document.cookie = "googtrans=/en/en; path=/";
+        document.cookie = "googtrans=/en/en; domain=" + window.location.hostname + "; path=/";
+      } else {
+        document.cookie = "googtrans=/en/" + langCode + "; path=/";
+        document.cookie = "googtrans=/en/" + langCode + "; domain=" + window.location.hostname + "; path=/";
+      }
+    }
+
+    function googleTranslateElementInit() {
+      if (window.google && window.google.translate) {
+        new google.translate.TranslateElement({
+          pageLanguage: 'en',
+          includedLanguages: 'en,hi,mr,te,kn,ta,pa,bn',
+          autoDisplay: false
+        }, 'google_translate_element');
+      }
+    }
+  </script>
+  <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" async defer></script>
   {% block extra_scripts %}{% endblock %}
 </body>
 </html>

@@ -1,4 +1,25 @@
-/* KrishiMitra - Agricultural Theme Stylesheet */
+/* Google Translate Frame & Balloon Cleanups */
+.goog-te-banner-frame.skiptranslate,
+.goog-te-banner-frame {
+  display: none !important;
+}
+body {
+  top: 0px !important;
+}
+.skiptranslate > iframe {
+  height: 0 !important;
+  border-style: none !important;
+  box-shadow: none !important;
+}
+#goog-gt-tt,
+.goog-te-balloon-frame {
+  display: none !important;
+}
+.goog-text-highlight {
+  background: none !important;
+  box-shadow: none !important;
+}
+
 :root {
   --primary-green: #2e7d32;
   --primary-dark: #1b5e20;

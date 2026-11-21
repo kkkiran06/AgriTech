@@ -46,4 +46,19 @@ def create_app(test_config=None):
     app.config['UPLOAD_FOLDER'] = upload_folder
     app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024  # 10 MB limit
 
+    # Register multi-language localization context processor
+    from flask import session
+    from app.translations.languages import get_translation, SUPPORTED_LANGUAGES
+
+    @app.context_processor
+    def inject_localization():
+        lang = session.get('lang', 'en')
+        def translate(key):
+            return get_translation(key, lang)
+        return dict(
+            t=translate,
+            current_lang=lang,
+            supported_languages=SUPPORTED_LANGUAGES
+        )
+
     return app

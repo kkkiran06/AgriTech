@@ -251,10 +251,12 @@ python -m pytest tests/ -v
 
 Expected Output:
 ```
-============================= 23 passed in ~7s =============================
+============================= 27 passed in ~8s =============================
 ```
 
-All 18 tests cover:
+All 27 automated tests cover:
+- Multi-language engine & 7 Indian regional languages support
+- PlantDoctor AI model loading, camera input, and diagnosis history
 - Password hashing & duplicate mobile prevention
 - Profile update persistence
 - Crop season and category filtering

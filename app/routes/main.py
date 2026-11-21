@@ -1,8 +1,24 @@
-from flask import Blueprint, render_template, session
+from flask import Blueprint, render_template, session, request, redirect, url_for, make_response
 from app.database.db import get_db
 from app.routes.helpers import get_current_farmer
+from app.translations.languages import SUPPORTED_LANGUAGES
 
 main_bp = Blueprint('main', __name__)
+
+@main_bp.route('/set-language/<lang_code>')
+def set_language(lang_code):
+    """Update session language preference and set cookie for client-side translation."""
+    if lang_code in SUPPORTED_LANGUAGES:
+        session['lang'] = lang_code
+
+    target = request.referrer or url_for('main.home')
+    resp = make_response(redirect(target))
+    # Also set Google Translate cookie for client-side full page translation
+    if lang_code == 'en':
+        resp.set_cookie('googtrans', '/en/en', path='/')
+    else:
+        resp.set_cookie('googtrans', f'/en/{lang_code}', path='/')
+    return resp
 
 @main_bp.route('/')
 def home():
