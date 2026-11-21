@@ -3,37 +3,32 @@
 
 {% block extra_head %}
 <style>
-  .result-hero {
-    background: linear-gradient(135deg, #1b382b, #2e7d32);
-    color: white;
+  .result-header {
+    background: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
     padding: 2.5rem 0 2rem;
   }
   .confidence-bar-track {
-    height: 12px;
-    background: #e0e0e0;
+    height: 8px;
+    background: #f1f5f9;
     border-radius: 50px;
     overflow: hidden;
   }
   .confidence-bar-fill {
     height: 100%;
     border-radius: 50px;
-    transition: width 1s ease;
+    background: #059669;
+    transition: width 0.8s ease;
   }
-  .severity-critical { background: #d32f2f; color: white; }
-  .severity-high     { background: #f57c00; color: white; }
-  .severity-moderate { background: #fbc02d; color: #333; }
-  .severity-none     { background: #388e3c; color: white; }
-  .severity-healthy  { background: #2e7d32; color: white; }
-  .severity-unknown  { background: #757575; color: white; }
   .plant-image-frame {
-    border: 4px solid #4caf50;
-    border-radius: 14px;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
     overflow: hidden;
     max-height: 320px;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #000;
+    background: #0f172a;
   }
   .plant-image-frame img {
     max-height: 320px;
@@ -41,23 +36,20 @@
     object-fit: contain;
   }
   .treatment-card {
-    border-radius: 14px;
-    border: none;
-    box-shadow: 0 3px 14px rgba(0,0,0,0.06);
-    transition: transform 0.2s;
-  }
-  .treatment-card:hover {
-    transform: translateY(-2px);
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
   }
   .soil-crop-pill {
-    background: #e8f5e9;
-    color: #1b5e20;
+    background: #f0fdf4;
+    color: #059669;
     font-weight: 600;
-    padding: 6px 14px;
+    font-size: 0.82rem;
+    padding: 4px 12px;
     border-radius: 30px;
     display: inline-block;
     margin: 3px;
-    border: 1px solid #c8e6c9;
+    border: 1px solid #bbf7d0;
   }
 </style>
 {% endblock %}
@@ -66,56 +58,54 @@
 
 {% set is_soil = (analysis.scan_type == 'soil') if analysis else False %}
 
-<!-- Result Hero -->
-<div class="result-hero">
+<!-- Result Header -->
+<div class="result-header">
   <div class="container">
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-      <div class="d-flex align-items-center gap-3">
-        <span style="font-size:3rem">{{ primary.emoji }}</span>
-        <div>
-          <span class="badge bg-warning text-dark fw-bold mb-1">
-            {% if is_soil %}🧪 SOIL HEALTH & FERTILIZER ADVISORY{% else %}🍃 CROP LEAF HEALTH DIAGNOSIS{% endif %}
+      <div>
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <span class="badge bg-light text-secondary border small">
+            {% if is_soil %}SOIL HEALTH &amp; FERTILIZER ADVISORY{% else %}CROP LEAF HEALTH DIAGNOSIS{% endif %}
           </span>
-          <h2 class="fw-bold mb-1">{{ primary.display_name }}</h2>
-          <p class="mb-0 opacity-75">
-            Subject: <strong>{{ primary.plant }}</strong> &nbsp;|&nbsp;
-            Diagnosed: {{ diagnosed_at }}
-          </p>
+          <span class="badge bg-success-subtle text-success border border-success-subtle small">
+            {{ analysis.ai_engine if analysis else 'Google Gemini Vision' }}
+          </span>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <span class="fs-2">{{ primary.emoji }}</span>
+          <div>
+            <h2 class="fw-bold text-dark mb-0" style="letter-spacing: -0.5px;">{{ primary.display_name }}</h2>
+            <p class="text-muted small mb-0">
+              Subject: <strong class="text-dark">{{ primary.plant }}</strong> &bull; Diagnosed: {{ diagnosed_at }}
+            </p>
+          </div>
         </div>
       </div>
 
       <!-- Action buttons -->
       <div class="d-flex gap-2">
-        <button class="btn btn-outline-light btn-sm px-3" onclick="speakResult()" id="btn-speak">
+        <button class="btn btn-outline-secondary btn-sm px-3" onclick="speakResult()" id="btn-speak">
           <i class="bi bi-volume-up-fill me-1"></i> Read Out Loud
         </button>
-        <button class="btn btn-light btn-sm px-3 text-dark fw-semibold" onclick="window.print()">
+        <button class="btn btn-outline-secondary btn-sm px-3" onclick="window.print()">
           <i class="bi bi-printer me-1"></i> Print / Save
         </button>
       </div>
     </div>
 
-    <!-- Severity & Engine badges -->
+    <!-- Severity & Confidence badges -->
     <div class="d-flex align-items-center gap-2 flex-wrap mt-3">
       {% set sev = primary.severity | lower %}
-      <span class="badge px-3 py-2 fs-6
-        {% if 'critical' in sev %}severity-critical
-        {% elif 'high' in sev %}severity-high
-        {% elif 'moderate' in sev %}severity-moderate
-        {% elif 'healthy' in sev or 'none' in sev %}severity-healthy
-        {% else %}severity-moderate{% endif %}">
-        <i class="bi bi-shield-fill-check me-1"></i>
+      <span class="badge px-2 py-1 small border
+        {% if 'critical' in sev %}bg-danger-subtle text-danger border-danger-subtle
+        {% elif 'high' in sev %}bg-warning-subtle text-warning border-warning-subtle
+        {% elif 'healthy' in sev or 'none' in sev %}bg-success-subtle text-success border-success-subtle
+        {% else %}bg-light text-secondary{% endif %}">
         Condition: {{ primary.severity }}
       </span>
 
-      <span class="badge bg-primary px-3 py-2 fs-6 shadow-sm">
-        <i class="bi bi-stars text-warning me-1"></i>
-        {{ analysis.ai_engine if analysis else 'Google Gemini Vision' }}
-      </span>
-
-      <span class="badge bg-success-subtle text-success border px-3 py-2 fs-6">
-        <i class="bi bi-check2-circle me-1"></i>
-        AI Confidence: {{ primary.confidence }}%
+      <span class="badge bg-light text-muted border px-2 py-1 small">
+        Confidence: {{ primary.confidence }}%
       </span>
     </div>
   </div>
@@ -130,39 +120,39 @@
     <div class="col-lg-4">
 
       <!-- Image Preview -->
-      <div class="card treatment-card mb-4">
+      <div class="card treatment-card mb-4 shadow-sm">
         <div class="card-body p-3">
           <div class="plant-image-frame mb-3">
             {% if image_b64 %}
               <img src="data:image/jpeg;base64,{{ image_b64 }}" alt="Sample Preview">
             {% else %}
               <div class="text-white p-5 text-center">
-                <i class="bi bi-image" style="font-size:3rem;opacity:0.4;"></i>
-                <p class="text-muted mt-2 mb-0">Image processed</p>
+                <i class="bi bi-image text-white-50" style="font-size: 2.5rem;"></i>
+                <p class="text-muted mt-2 mb-0 small">Image processed</p>
               </div>
             {% endif %}
           </div>
 
           <!-- Confidence Meter -->
           <div class="mb-2">
-            <div class="d-flex justify-content-between small fw-semibold text-muted mb-1">
+            <div class="d-flex justify-content-between small text-muted mb-1">
               <span>Diagnostic Confidence</span>
               <span class="text-success fw-bold">{{ primary.confidence }}%</span>
             </div>
             <div class="confidence-bar-track">
-              <div class="confidence-bar-fill bg-success" style="width: {{ primary.confidence }}%;"></div>
+              <div class="confidence-bar-fill" style="width: {{ primary.confidence }}%;"></div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Gemini AI Visual Assessment -->
-      <div class="card treatment-card mb-4" style="background: #fdfefe; border-left: 5px solid #2e7d32 !important;">
+      <!-- AI Visual Assessment -->
+      <div class="card treatment-card mb-4 shadow-sm">
         <div class="card-body p-4">
-          <h5 class="fw-bold text-success mb-2">
-            <i class="bi bi-eye-fill me-2"></i>AI Visual Observations
-          </h5>
-          <p class="text-muted mb-0" style="line-height: 1.6;" id="text-visual">
+          <h6 class="fw-bold text-dark mb-2 small text-uppercase" style="letter-spacing: 0.5px;">
+            AI Visual Observations
+          </h6>
+          <p class="text-muted small mb-0" style="line-height: 1.6;" id="text-visual">
             {{ primary.symptoms }}
           </p>
         </div>
@@ -170,12 +160,12 @@
 
       <!-- Scan Another Button -->
       <div class="d-grid gap-2">
-        <a href="{{ url_for('plantdoctor.index', scan_type='leaf' if not is_soil else 'soil') }}" class="btn btn-outline-success fw-bold py-2">
+        <a href="{{ url_for('plantdoctor.index', scan_type='leaf' if not is_soil else 'soil') }}" class="btn btn-outline-success btn-sm fw-semibold py-2">
           <i class="bi bi-arrow-repeat me-1"></i> Scan Another Sample
         </a>
         {% if is_soil %}
-        <a href="{{ url_for('soil.index') }}#calculator" class="btn btn-warning fw-bold py-2 text-dark">
-          <i class="bi bi-calculator-fill me-1"></i> Calculate NPK Bags
+        <a href="{{ url_for('soil.index') }}#calculator" class="btn btn-success btn-sm fw-semibold py-2">
+          <i class="bi bi-calculator me-1"></i> Calculate NPK Bags
         </a>
         {% endif %}
       </div>
@@ -189,43 +179,40 @@
       <!-- ═══ SOIL HEALTH RECOMMENDATIONS ═══ -->
 
       <!-- 1. NPK Fertilizer Schedule -->
-      <div class="card treatment-card mb-4 border-start border-4 border-primary">
+      <div class="card treatment-card mb-4 shadow-sm">
         <div class="card-body p-4">
-          <div class="d-flex align-items-center gap-2 mb-2">
-            <span class="fs-4">⚖️</span>
-            <h5 class="fw-bold text-primary mb-0">NPK Fertilizer Schedule & Basal Dosing</h5>
-          </div>
-          <p class="text-dark mb-3" style="font-size: 1.05rem;" id="text-npk">
+          <h6 class="fw-bold text-dark mb-2 small text-uppercase" style="letter-spacing: 0.5px;">
+            NPK Fertilizer Schedule &amp; Basal Dosing
+          </h6>
+          <p class="text-dark mb-3 small" style="line-height: 1.6;" id="text-npk">
             {{ primary.npk_advice if primary.npk_advice else 'Apply recommended NPK split doses to match crop vegetative stages.' }}
           </p>
-          <div class="p-3 bg-light rounded-3 border">
-            <small class="text-muted d-block fw-semibold mb-1">Commercial Chemical Fertilizers & Soil Amendments:</small>
-            <p class="mb-0 text-dark" id="text-chemical">{{ primary.chemical_treatment }}</p>
+          <div class="p-3 bg-light rounded-2 border">
+            <small class="text-muted d-block fw-semibold mb-1" style="font-size: 0.75rem;">Commercial Chemical Fertilizers &amp; Soil Amendments:</small>
+            <p class="mb-0 text-dark small" id="text-chemical">{{ primary.chemical_treatment }}</p>
           </div>
         </div>
       </div>
 
       <!-- 2. Organic Soil Enrichment -->
-      <div class="card treatment-card mb-4 border-start border-4 border-success">
+      <div class="card treatment-card mb-4 shadow-sm">
         <div class="card-body p-4">
-          <div class="d-flex align-items-center gap-2 mb-2">
-            <span class="fs-4">🌱</span>
-            <h5 class="fw-bold text-success mb-0">Organic Carbon & Bio-Fertilizer Improvement</h5>
-          </div>
-          <p class="text-dark mb-0" style="line-height:1.6;" id="text-organic">
+          <h6 class="fw-bold text-dark mb-2 small text-uppercase" style="letter-spacing: 0.5px;">
+            Organic Carbon &amp; Bio-Fertilizer Improvement
+          </h6>
+          <p class="text-muted small mb-0" style="line-height: 1.6;" id="text-organic">
             {{ primary.organic_treatment }}
           </p>
         </div>
       </div>
 
       <!-- 3. Recommended High-Yield Crops -->
-      <div class="card treatment-card mb-4 border-start border-4 border-warning">
+      <div class="card treatment-card mb-4 shadow-sm">
         <div class="card-body p-4">
-          <div class="d-flex align-items-center gap-2 mb-2">
-            <span class="fs-4">🌾</span>
-            <h5 class="fw-bold text-dark mb-0">Top Crops Suited for This Soil</h5>
-          </div>
-          <p class="text-muted small mb-3">Based on texture, drainage, and chemical nutrient retention of this soil type:</p>
+          <h6 class="fw-bold text-dark mb-1 small text-uppercase" style="letter-spacing: 0.5px;">
+            Top Crops Suited for This Soil
+          </h6>
+          <p class="text-muted small mb-3">Based on texture, drainage, and chemical nutrient retention:</p>
           <div>
             {% if primary.suitable_crops %}
               {% for crop in primary.suitable_crops.split(',') %}
@@ -242,13 +229,12 @@
       </div>
 
       <!-- 4. Soil Moisture & Conservation -->
-      <div class="card treatment-card mb-4 border-start border-4 border-info">
+      <div class="card treatment-card mb-4 shadow-sm">
         <div class="card-body p-4">
-          <div class="d-flex align-items-center gap-2 mb-2">
-            <span class="fs-4">💧</span>
-            <h5 class="fw-bold text-info mb-0">Soil Moisture & Field Management</h5>
-          </div>
-          <p class="text-dark mb-0" style="line-height:1.6;" id="text-prevention">
+          <h6 class="fw-bold text-dark mb-2 small text-uppercase" style="letter-spacing: 0.5px;">
+            Soil Moisture &amp; Field Management
+          </h6>
+          <p class="text-muted small mb-0" style="line-height: 1.6;" id="text-prevention">
             {{ primary.prevention }}
           </p>
         </div>
@@ -258,44 +244,41 @@
       <!-- ═══ LEAF & CROP DISEASE RECOMMENDATIONS ═══ -->
 
       <!-- 1. Organic / Natural Solutions -->
-      <div class="card treatment-card mb-4 border-start border-4 border-success">
+      <div class="card treatment-card mb-4 shadow-sm">
         <div class="card-body p-4">
-          <div class="d-flex align-items-center gap-2 mb-2">
-            <span class="fs-4">🌿</span>
-            <h5 class="fw-bold text-success mb-0">Organic & Bio-Remedies (Eco-Friendly)</h5>
-          </div>
-          <p class="text-dark mb-0" style="line-height: 1.6; font-size:1.02rem;" id="text-organic">
+          <h6 class="fw-bold text-dark mb-2 small text-uppercase" style="letter-spacing: 0.5px;">
+            Organic &amp; Bio-Remedies (Eco-Friendly)
+          </h6>
+          <p class="text-muted small mb-0" style="line-height: 1.6;" id="text-organic">
             {{ primary.organic_treatment }}
           </p>
         </div>
       </div>
 
       <!-- 2. Targeted Chemical Treatment -->
-      <div class="card treatment-card mb-4 border-start border-4 border-danger">
+      <div class="card treatment-card mb-4 shadow-sm">
         <div class="card-body p-4">
-          <div class="d-flex align-items-center gap-2 mb-2">
-            <span class="fs-4">💊</span>
-            <h5 class="fw-bold text-danger mb-0">Targeted Chemical Treatment & Spray Dosage</h5>
-          </div>
-          <p class="text-dark mb-2" style="line-height: 1.6; font-size:1.02rem;" id="text-chemical">
+          <h6 class="fw-bold text-dark mb-2 small text-uppercase" style="letter-spacing: 0.5px;">
+            Targeted Chemical Treatment &amp; Spray Dosage
+          </h6>
+          <p class="text-dark small mb-2" style="line-height: 1.6;" id="text-chemical">
             {{ primary.chemical_treatment }}
           </p>
-          <small class="text-muted">
-            <i class="bi bi-exclamation-circle text-warning me-1"></i>
-            Follow safety instructions: spray during morning or late afternoon to protect beneficial pollinators.
+          <small class="text-muted" style="font-size: 0.78rem;">
+            <i class="bi bi-shield-exclamation text-warning me-1"></i>
+            Follow safety instructions: spray during early morning or late afternoon to protect pollinators.
           </small>
         </div>
       </div>
 
       <!-- 3. Plant Nutrition & Recovery -->
       {% if primary.npk_advice %}
-      <div class="card treatment-card mb-4 border-start border-4 border-primary">
+      <div class="card treatment-card mb-4 shadow-sm">
         <div class="card-body p-4">
-          <div class="d-flex align-items-center gap-2 mb-2">
-            <span class="fs-4">⚡</span>
-            <h5 class="fw-bold text-primary mb-0">Foliar Nutrient Boost & Recovery</h5>
-          </div>
-          <p class="text-dark mb-0" id="text-npk">
+          <h6 class="fw-bold text-dark mb-2 small text-uppercase" style="letter-spacing: 0.5px;">
+            Foliar Nutrient Boost &amp; Recovery
+          </h6>
+          <p class="text-muted small mb-0" id="text-npk" style="line-height: 1.6;">
             {{ primary.npk_advice }}
           </p>
         </div>
@@ -303,19 +286,18 @@
       {% endif %}
 
       <!-- 4. Prevention & Field Management -->
-      <div class="card treatment-card mb-4 border-start border-4 border-warning">
+      <div class="card treatment-card mb-4 shadow-sm">
         <div class="card-body p-4">
-          <div class="d-flex align-items-center gap-2 mb-2">
-            <span class="fs-4">🛡️</span>
-            <h5 class="fw-bold text-dark mb-0">Prevention & Long-Term Crop Protection</h5>
-          </div>
-          <p class="text-dark mb-2" style="line-height: 1.6;" id="text-prevention">
+          <h6 class="fw-bold text-dark mb-2 small text-uppercase" style="letter-spacing: 0.5px;">
+            Prevention &amp; Crop Protection
+          </h6>
+          <p class="text-muted small mb-2" style="line-height: 1.6;" id="text-prevention">
             {{ primary.prevention }}
           </p>
           {% if primary.suitable_crops %}
           <div class="mt-3 pt-2 border-top">
             <small class="text-muted fw-semibold">Recommended Crop Rotation / Barrier Crops:</small>
-            <p class="mb-0 text-success fw-semibold">{{ primary.suitable_crops }}</p>
+            <p class="mb-0 text-success small fw-medium">{{ primary.suitable_crops }}</p>
           </div>
           {% endif %}
         </div>

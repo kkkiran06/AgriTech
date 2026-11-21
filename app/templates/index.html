@@ -4,69 +4,64 @@
 
 {% block content %}
 <!-- Hero Section -->
-<section class="py-5" style="background: linear-gradient(135deg, rgba(27, 94, 32, 0.95) 0%, rgba(46, 125, 50, 0.9) 100%), url('https://images.unsplash.com/photo-1500937386664-56d1dfef3854?auto=format&fit=crop&w=1600&q=80') center/cover; color: #ffffff;">
+<section class="py-5 bg-white border-bottom">
   <div class="container py-4">
-    <div class="row align-items-center">
+    <div class="row align-items-center g-4">
       <div class="col-lg-8">
-        <span class="badge bg-warning text-dark px-3 py-2 fw-bold mb-3 fs-6">
-          🌱 {{ t('free_service_badge') }}
-        </span>
-        <h1 class="display-4 fw-bold mb-3">
+        <div class="d-inline-flex align-items-center gap-2 px-3 py-1 bg-success-subtle border border-success-subtle text-success rounded-pill small mb-3">
+          <i class="bi bi-shield-check"></i>
+          <span>Smart Agriculture For Every Farmer</span>
+        </div>
+        <h1 class="display-5 fw-bold text-dark mb-3" style="letter-spacing: -1px; line-height: 1.15;">
           {{ t('tagline') }}
         </h1>
-        <p class="lead text-white-50 mb-4" style="font-size: 1.25rem;">
-          Get accurate weather forecasts, proven crop cultivation schedules, customized fertilizer dosage calculations, instant pest remedies, daily mandi prices, and government subsidy guides—all in one place.
+        <p class="lead text-muted mb-4" style="font-size: 1.1rem; line-height: 1.6; max-width: 640px;">
+          KrishiMitra provides verified agronomic guides, 7-day weather forecasts, scientific NPK fertilizer calculation, instant disease diagnosis via Gemini AI, and daily APMC mandi market intelligence.
         </p>
-        <div class="d-flex flex-wrap gap-3">
+        <div class="d-flex flex-wrap gap-2">
           {% if session.get('farmer_id') %}
-            <a href="{{ url_for('main.dashboard') }}" class="btn btn-warning btn-lg fw-bold px-4 shadow">
-              <i class="bi bi-speedometer2 me-2"></i> Go to My Farm Dashboard
+            <a href="{{ url_for('main.dashboard') }}" class="btn btn-success px-4 py-2 fw-semibold shadow-sm">
+              <i class="bi bi-grid-1x2 me-2"></i> Go to Dashboard
             </a>
           {% else %}
-            <a href="{{ url_for('auth.register') }}" class="btn btn-warning btn-lg fw-bold px-4 shadow">
-              <i class="bi bi-person-plus me-2"></i> Register Free Today
+            <a href="{{ url_for('auth.register') }}" class="btn btn-success px-4 py-2 fw-semibold shadow-sm">
+              <i class="bi bi-person-plus me-2"></i> Register Account
             </a>
-            <a href="{{ url_for('auth.login') }}" class="btn btn-outline-light btn-lg px-4">
-              <i class="bi bi-box-arrow-in-right me-2"></i> Farmer Login
+            <a href="{{ url_for('auth.login') }}" class="btn btn-outline-secondary px-4 py-2 fw-medium">
+              <i class="bi bi-box-arrow-in-right me-2"></i> Login
             </a>
           {% endif %}
-          <a href="{{ url_for('plantdoctor.index') }}" class="btn btn-danger btn-lg px-4 shadow text-white fw-bold">
-            <i class="bi bi-camera-fill me-2"></i> PlantDoctor AI Camera
+          <a href="{{ url_for('plantdoctor.index') }}" class="btn btn-outline-success px-4 py-2 fw-semibold">
+            <i class="bi bi-camera me-2"></i> PlantDoctor AI Camera
           </a>
-          <a href="{{ url_for('crops.index') }}" class="btn btn-light btn-lg px-4 text-success fw-semibold">
+          <a href="{{ url_for('crops.index') }}" class="btn btn-light border px-4 py-2 text-dark">
             <i class="bi bi-flower1 me-2"></i> Explore Crops
           </a>
         </div>
       </div>
-      <div class="col-lg-4 d-none d-lg-block text-center">
-        <div class="p-4 bg-white rounded-4 shadow-lg text-dark text-start">
-          <div class="d-flex align-items-center gap-2 mb-3 text-success">
-            <span class="fs-2">🌾</span>
-            <div>
-              <h5 class="fw-bold mb-0">Platform Overview</h5>
-              <small class="text-muted">Designed for Indian Agriculture</small>
-            </div>
-          </div>
-          <ul class="list-unstyled small mb-0 d-flex flex-column gap-2">
+      <div class="col-lg-4 d-none d-lg-block">
+        <div class="p-4 bg-light rounded-3 border">
+          <h6 class="fw-bold text-dark mb-3 small text-uppercase" style="letter-spacing: 0.5px;">Platform Highlights</h6>
+          <ul class="list-unstyled small mb-0 d-flex flex-column gap-2 text-muted">
             <li class="d-flex align-items-center gap-2">
-              <i class="bi bi-check2-circle text-success fs-5"></i>
-              <span><strong>8 Major Field Crops:</strong> Sowing, irrigation & fertilization schedules</span>
+              <i class="bi bi-check2 text-success fs-6"></i>
+              <span><strong class="text-dark">8 Field Crops:</strong> Sowing, irrigation & fertilization schedules</span>
             </li>
             <li class="d-flex align-items-center gap-2">
-              <i class="bi bi-check2-circle text-success fs-5"></i>
-              <span><strong>Real-time Weather:</strong> Open-Meteo integration with spray advisories</span>
+              <i class="bi bi-check2 text-success fs-6"></i>
+              <span><strong class="text-dark">Real-time Weather:</strong> Open-Meteo satellite feed with spray advisory</span>
             </li>
             <li class="d-flex align-items-center gap-2">
-              <i class="bi bi-check2-circle text-success fs-5"></i>
-              <span><strong>NPK Calculator:</strong> Exact urea, DAP & MOP bag recommendations</span>
+              <i class="bi bi-check2 text-success fs-6"></i>
+              <span><strong class="text-dark">NPK Calculator:</strong> Exact urea, DAP & MOP bag requirements</span>
             </li>
             <li class="d-flex align-items-center gap-2">
-              <i class="bi bi-check2-circle text-success fs-5"></i>
-              <span><strong>Disease Doctor:</strong> Visual identification & organic remedies</span>
+              <i class="bi bi-check2 text-success fs-6"></i>
+              <span><strong class="text-dark">PlantDoctor AI:</strong> Instant leaf disease & soil condition diagnosis</span>
             </li>
             <li class="d-flex align-items-center gap-2">
-              <i class="bi bi-check2-circle text-success fs-5"></i>
-              <span><strong>APMC Mandi Tracker:</strong> Multi-district price comparison</span>
+              <i class="bi bi-check2 text-success fs-6"></i>
+              <span><strong class="text-dark">APMC Mandi Tracker:</strong> Multi-district price benchmark</span>
             </li>
           </ul>
         </div>
@@ -76,24 +71,24 @@
 </section>
 
 <!-- Core Features Section -->
-<section class="py-5 bg-white">
-  <div class="container py-3">
-    <div class="text-center mb-5">
-      <span class="text-success fw-bold text-uppercase tracking-wide small">Practical Digital Tools</span>
-      <h2 class="fw-bold text-dark mt-1">Everything You Need For A Bumper Harvest</h2>
-      <p class="text-muted">Simple, accessible, and scientifically verified solutions tailored for everyday agricultural decisions.</p>
+<section class="py-5">
+  <div class="container py-2">
+    <div class="mb-4">
+      <span class="text-success fw-bold text-uppercase small" style="letter-spacing: 0.5px;">Agricultural Advisory Modules</span>
+      <h3 class="fw-bold text-dark mt-1" style="letter-spacing: -0.5px;">Everything You Need For Better Yields</h3>
+      <p class="text-muted small">Scientifically verified, accessible solutions for everyday farming decisions.</p>
     </div>
 
-    <div class="row g-4">
+    <div class="row g-3">
       <!-- 1. Crop Info -->
       <div class="col-md-6 col-lg-4">
-        <div class="farm-card p-4 h-100">
-          <div class="fs-1 text-success mb-3">🌾</div>
-          <h5 class="fw-bold text-dark">Crop Cultivation Guides</h5>
-          <p class="text-muted small">
+        <div class="card border-0 shadow-sm p-4 h-100 bg-white" style="border-radius: 12px; border: 1px solid #e2e8f0 !important;">
+          <div class="fs-3 mb-2">🌾</div>
+          <h5 class="fw-bold text-dark mb-1">Crop Cultivation Guides</h5>
+          <p class="text-muted small mb-3" style="line-height: 1.5;">
             Season-by-season agronomic advisories for Kharif, Rabi, and Zaid. Step-by-step planting, seed spacing, and irrigation regimes.
           </p>
-          <a href="{{ url_for('crops.index') }}" class="text-success fw-semibold text-decoration-none small">
+          <a href="{{ url_for('crops.index') }}" class="text-success fw-semibold text-decoration-none small mt-auto">
             Explore Crops <i class="bi bi-arrow-right ms-1"></i>
           </a>
         </div>
@@ -101,13 +96,13 @@
 
       <!-- 2. Weather -->
       <div class="col-md-6 col-lg-4">
-        <div class="farm-card p-4 h-100">
-          <div class="fs-1 text-info mb-3">🌦️</div>
-          <h5 class="fw-bold text-dark">Weather & Spray Advisory</h5>
-          <p class="text-muted small">
+        <div class="card border-0 shadow-sm p-4 h-100 bg-white" style="border-radius: 12px; border: 1px solid #e2e8f0 !important;">
+          <div class="fs-3 mb-2">🌦️</div>
+          <h5 class="fw-bold text-dark mb-1">Weather & Spray Advisory</h5>
+          <p class="text-muted small mb-3" style="line-height: 1.5;">
             District-wise temperature, humidity, rainfall forecasts, and automated farming advisories to prevent pesticide and fertilizer wastage.
           </p>
-          <a href="{{ url_for('weather.index') }}" class="text-success fw-semibold text-decoration-none small">
+          <a href="{{ url_for('weather.index') }}" class="text-success fw-semibold text-decoration-none small mt-auto">
             Check Weather <i class="bi bi-arrow-right ms-1"></i>
           </a>
         </div>
@@ -115,13 +110,13 @@
 
       <!-- 3. Soil & Fertilizer -->
       <div class="col-md-6 col-lg-4">
-        <div class="farm-card p-4 h-100">
-          <div class="fs-1 text-warning mb-3">🧪</div>
-          <h5 class="fw-bold text-dark">Soil & Fertilizer Calculator</h5>
-          <p class="text-muted small">
+        <div class="card border-0 shadow-sm p-4 h-100 bg-white" style="border-radius: 12px; border: 1px solid #e2e8f0 !important;">
+          <div class="fs-3 mb-2">🧪</div>
+          <h5 class="fw-bold text-dark mb-1">Soil & Fertilizer Calculator</h5>
+          <p class="text-muted small mb-3" style="line-height: 1.5;">
             Calculate accurate Nitrogen, Phosphorus, and Potassium needs. Get exact commercial fertilizer bag counts for your specific land size.
           </p>
-          <a href="{{ url_for('soil.index') }}" class="text-success fw-semibold text-decoration-none small">
+          <a href="{{ url_for('soil.index') }}" class="text-success fw-semibold text-decoration-none small mt-auto">
             Calculate Fertilizer <i class="bi bi-arrow-right ms-1"></i>
           </a>
         </div>
@@ -129,13 +124,13 @@
 
       <!-- 4. Pest & Disease -->
       <div class="col-md-6 col-lg-4">
-        <div class="farm-card p-4 h-100">
-          <div class="fs-1 text-danger mb-3">🐛</div>
-          <h5 class="fw-bold text-dark">Pest & Disease Doctor</h5>
-          <p class="text-muted small">
+        <div class="card border-0 shadow-sm p-4 h-100 bg-white" style="border-radius: 12px; border: 1px solid #e2e8f0 !important;">
+          <div class="fs-3 mb-2">🐛</div>
+          <h5 class="fw-bold text-dark mb-1">Pest & Disease Doctor</h5>
+          <p class="text-muted small mb-3" style="line-height: 1.5;">
             Early symptom identification, prevention measures, and practical biological/chemical treatments with safe dosage instructions.
           </p>
-          <a href="{{ url_for('diseases.index') }}" class="text-success fw-semibold text-decoration-none small">
+          <a href="{{ url_for('diseases.index') }}" class="text-success fw-semibold text-decoration-none small mt-auto">
             Diagnose Pests <i class="bi bi-arrow-right ms-1"></i>
           </a>
         </div>
@@ -143,13 +138,13 @@
 
       <!-- 5. Mandi Rates -->
       <div class="col-md-6 col-lg-4">
-        <div class="farm-card p-4 h-100">
-          <div class="fs-1 text-primary mb-3">📊</div>
-          <h5 class="fw-bold text-dark">Mandi Prices Tracker</h5>
-          <p class="text-muted small">
+        <div class="card border-0 shadow-sm p-4 h-100 bg-white" style="border-radius: 12px; border: 1px solid #e2e8f0 !important;">
+          <div class="fs-3 mb-2">📊</div>
+          <h5 class="fw-bold text-dark mb-1">Mandi Prices Tracker</h5>
+          <p class="text-muted small mb-3" style="line-height: 1.5;">
             Compare commodity minimum, maximum, and modal prices across agricultural APMC markets to maximize your sale revenue.
           </p>
-          <a href="{{ url_for('market.index') }}" class="text-success fw-semibold text-decoration-none small">
+          <a href="{{ url_for('market.index') }}" class="text-success fw-semibold text-decoration-none small mt-auto">
             View Market Prices <i class="bi bi-arrow-right ms-1"></i>
           </a>
         </div>
@@ -157,32 +152,36 @@
 
       <!-- 6. Govt Schemes -->
       <div class="col-md-6 col-lg-4">
-        <div class="farm-card p-4 h-100">
-          <div class="fs-1 text-success mb-3">🏛️</div>
-          <h5 class="fw-bold text-dark">Government Schemes</h5>
-          <p class="text-muted small">
+        <div class="card border-0 shadow-sm p-4 h-100 bg-white" style="border-radius: 12px; border: 1px solid #e2e8f0 !important;">
+          <div class="fs-3 mb-2">🏛️</div>
+          <h5 class="fw-bold text-dark mb-1">Government Schemes</h5>
+          <p class="text-muted small mb-3" style="line-height: 1.5;">
             Instant guide to PM-KISAN, PMFBY insurance, KCC loans, and equipment subsidies with clear eligibility and direct application portals.
           </p>
-          <a href="{{ url_for('schemes.index') }}" class="text-success fw-semibold text-decoration-none small">
+          <a href="{{ url_for('schemes.index') }}" class="text-success fw-semibold text-decoration-none small mt-auto">
             Browse Schemes <i class="bi bi-arrow-right ms-1"></i>
           </a>
         </div>
       </div>
 
-      <!-- 7. PlantDoctor AI -->
-      <div class="col-md-12 col-lg-4">
-        <div class="farm-card p-4 h-100 border border-success" style="background: linear-gradient(135deg, #f1f8e9 0%, #ffffff 100%);">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <div class="fs-1 text-danger">🔬</div>
-            <span class="badge bg-danger">AI Camera</span>
+      <!-- 7. PlantDoctor AI Banner -->
+      <div class="col-12">
+        <div class="card border-0 shadow-sm p-4 bg-white" style="border-radius: 12px; border: 1px solid #e2e8f0 !important;">
+          <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <div>
+              <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="badge bg-success-subtle text-success border border-success-subtle small">Google Gemini Vision AI</span>
+                <span class="badge bg-light text-muted border small">Camera & Upload</span>
+              </div>
+              <h5 class="fw-bold text-dark mb-1">PlantDoctor AI Diagnosis & Soil Scanner</h5>
+              <p class="text-muted small mb-0" style="max-width: 600px;">
+                Take a picture of any affected crop leaf or field soil using your camera or upload an image for immediate AI diagnosis and ICAR-standard treatment steps.
+              </p>
+            </div>
+            <a href="{{ url_for('plantdoctor.index') }}" class="btn btn-success btn-sm px-4 py-2 fw-semibold shadow-sm text-nowrap">
+              <i class="bi bi-camera me-1"></i> Launch PlantDoctor
+            </a>
           </div>
-          <h5 class="fw-bold text-dark">PlantDoctor AI Diagnosis</h5>
-          <p class="text-muted small">
-            Take a picture of any affected crop leaf using your camera or upload an image. Instant AI deep learning diagnosis with organic & chemical cure steps.
-          </p>
-          <a href="{{ url_for('plantdoctor.index') }}" class="text-success fw-bold text-decoration-none small">
-            Launch PlantDoctor <i class="bi bi-arrow-right ms-1"></i>
-          </a>
         </div>
       </div>
     </div>
@@ -190,17 +189,17 @@
 </section>
 
 <!-- Call To Action -->
-<section class="py-5" style="background-color: #e8f5e9;">
-  <div class="container text-center py-3">
-    <h3 class="fw-bold text-success mb-2">Ready To Transform Your Agricultural Management?</h3>
-    <p class="text-secondary mb-4">Start using KrishiMitra now — 100% free for all farmers and agriculturalists.</p>
+<section class="py-5 bg-white border-top">
+  <div class="container text-center py-2">
+    <h4 class="fw-bold text-dark mb-1">Empowering Farmers with Precision Advisory</h4>
+    <p class="text-muted small mb-3">Open-access digital agriculture tools designed for all Indian farmers.</p>
     {% if not session.get('farmer_id') %}
-      <a href="{{ url_for('auth.register') }}" class="btn btn-agri btn-lg px-4 shadow-sm">
-        <i class="bi bi-pencil-square me-2"></i> Create Free Farmer Account
+      <a href="{{ url_for('auth.register') }}" class="btn btn-success btn-sm px-4 py-2 fw-semibold shadow-sm">
+        <i class="bi bi-pencil-square me-1"></i> Create Free Farmer Account
       </a>
     {% else %}
-      <a href="{{ url_for('main.dashboard') }}" class="btn btn-agri btn-lg px-4 shadow-sm">
-        <i class="bi bi-speedometer2 me-2"></i> Open Dashboard
+      <a href="{{ url_for('main.dashboard') }}" class="btn btn-success btn-sm px-4 py-2 fw-semibold shadow-sm">
+        <i class="bi bi-grid-1x2 me-1"></i> Open Dashboard
       </a>
     {% endif %}
   </div>
