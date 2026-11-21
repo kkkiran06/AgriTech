@@ -1,12 +1,12 @@
 {% extends 'base.html' %}
-{% block title %}Diagnosis Result — PlantDoctor AI{% endblock %}
+{% block title %}AI Analysis Result — KrishiMitra{% endblock %}
 
 {% block extra_head %}
 <style>
   .result-hero {
-    background: linear-gradient(135deg, #1a4731, #2d7a4f);
+    background: linear-gradient(135deg, #1b382b, #2e7d32);
     color: white;
-    padding: 2rem 0;
+    padding: 2.5rem 0 2rem;
   }
   .confidence-bar-track {
     height: 12px;
@@ -23,259 +23,347 @@
   .severity-high     { background: #f57c00; color: white; }
   .severity-moderate { background: #fbc02d; color: #333; }
   .severity-none     { background: #388e3c; color: white; }
+  .severity-healthy  { background: #2e7d32; color: white; }
   .severity-unknown  { background: #757575; color: white; }
   .plant-image-frame {
     border: 4px solid #4caf50;
-    border-radius: 12px;
+    border-radius: 14px;
     overflow: hidden;
-    max-height: 280px;
+    max-height: 320px;
     display: flex;
     align-items: center;
     justify-content: center;
     background: #000;
   }
   .plant-image-frame img {
-    max-height: 280px;
+    max-height: 320px;
     max-width: 100%;
     object-fit: contain;
   }
   .treatment-card {
-    border-radius: 12px;
+    border-radius: 14px;
     border: none;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+    box-shadow: 0 3px 14px rgba(0,0,0,0.06);
+    transition: transform 0.2s;
   }
-  .alt-diagnosis-card {
-    border-left: 4px solid #4caf50;
-    border-radius: 0 12px 12px 0;
-    background: #f9fbe7;
-    padding: 0.75rem 1rem;
-    margin-bottom: 0.5rem;
+  .treatment-card:hover {
+    transform: translateY(-2px);
   }
-  .demo-banner {
-    background: linear-gradient(90deg, #fff3e0, #fff8e1);
-    border-left: 5px solid #ff9800;
-    border-radius: 0 8px 8px 0;
+  .soil-crop-pill {
+    background: #e8f5e9;
+    color: #1b5e20;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 30px;
+    display: inline-block;
+    margin: 3px;
+    border: 1px solid #c8e6c9;
   }
 </style>
 {% endblock %}
 
 {% block content %}
 
+{% set is_soil = (analysis.scan_type == 'soil') if analysis else False %}
+
 <!-- Result Hero -->
 <div class="result-hero">
   <div class="container">
-    <div class="d-flex align-items-center gap-3 mb-2">
-      <span style="font-size:2.5rem">{{ primary.emoji }}</span>
-      <div>
-        <h2 class="fw-bold mb-1">{{ primary.display_name }}</h2>
-        <p class="mb-0 opacity-75">
-          Plant: <strong>{{ primary.plant }}</strong> &nbsp;|&nbsp;
-          Diagnosed: {{ diagnosed_at }}
-        </p>
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+      <div class="d-flex align-items-center gap-3">
+        <span style="font-size:3rem">{{ primary.emoji }}</span>
+        <div>
+          <span class="badge bg-warning text-dark fw-bold mb-1">
+            {% if is_soil %}🧪 SOIL HEALTH & FERTILIZER ADVISORY{% else %}🍃 CROP LEAF HEALTH DIAGNOSIS{% endif %}
+          </span>
+          <h2 class="fw-bold mb-1">{{ primary.display_name }}</h2>
+          <p class="mb-0 opacity-75">
+            Subject: <strong>{{ primary.plant }}</strong> &nbsp;|&nbsp;
+            Diagnosed: {{ diagnosed_at }}
+          </p>
+        </div>
+      </div>
+
+      <!-- Action buttons -->
+      <div class="d-flex gap-2">
+        <button class="btn btn-outline-light btn-sm px-3" onclick="speakResult()" id="btn-speak">
+          <i class="bi bi-volume-up-fill me-1"></i> Read Out Loud
+        </button>
+        <button class="btn btn-light btn-sm px-3 text-dark fw-semibold" onclick="window.print()">
+          <i class="bi bi-printer me-1"></i> Print / Save
+        </button>
       </div>
     </div>
 
-    <!-- Severity badge -->
-    {% set sev = primary.severity | lower %}
-    <span class="badge px-3 py-2 fs-6
-      {% if sev == 'critical' %}severity-critical
-      {% elif sev == 'high' %}severity-high
-      {% elif sev == 'moderate' %}severity-moderate
-      {% elif sev == 'none' %}severity-none
-      {% else %}severity-unknown{% endif %}">
-      <i class="bi bi-exclamation-triangle-fill me-1"></i>
-      Severity: {{ primary.severity }}
-    </span>
+    <!-- Severity & Engine badges -->
+    <div class="d-flex align-items-center gap-2 flex-wrap mt-3">
+      {% set sev = primary.severity | lower %}
+      <span class="badge px-3 py-2 fs-6
+        {% if 'critical' in sev %}severity-critical
+        {% elif 'high' in sev %}severity-high
+        {% elif 'moderate' in sev %}severity-moderate
+        {% elif 'healthy' in sev or 'none' in sev %}severity-healthy
+        {% else %}severity-moderate{% endif %}">
+        <i class="bi bi-shield-fill-check me-1"></i>
+        Condition: {{ primary.severity }}
+      </span>
 
-    <!-- Mode badge -->
-    {% if ai_mode == 'ai' %}
-      <span class="badge bg-primary px-3 py-2 fs-6 ms-2">
-        <i class="bi bi-cpu-fill me-1"></i> AI Model (MobileNetV2)
+      <span class="badge bg-primary px-3 py-2 fs-6 shadow-sm">
+        <i class="bi bi-stars text-warning me-1"></i>
+        {{ analysis.ai_engine if analysis else 'Google Gemini Vision' }}
       </span>
-    {% else %}
-      <span class="badge bg-warning text-dark px-3 py-2 fs-6 ms-2">
-        <i class="bi bi-flask me-1"></i> Demo Simulation Mode
+
+      <span class="badge bg-success-subtle text-success border px-3 py-2 fs-6">
+        <i class="bi bi-check2-circle me-1"></i>
+        AI Confidence: {{ primary.confidence }}%
       </span>
-    {% endif %}
+    </div>
   </div>
 </div>
 
 <div class="container py-4">
 
-  {% if ai_mode == 'demo' %}
-  <div class="demo-banner p-3 mb-4">
-    <strong><i class="bi bi-info-circle-fill text-warning me-2"></i>Demo Mode Notice:</strong>
-    The AI model weights are not yet downloaded. This result is a <em>simulated demonstration</em> using a deterministic hash of your image. The treatment information shown is <strong>medically accurate</strong> for the displayed disease.
-    Install PyTorch + download model weights for real AI-powered detection.
-  </div>
-  {% endif %}
-
+  <!-- Main Content Grid -->
   <div class="row g-4">
 
-    <!-- Left: Image + Confidence -->
-    <div class="col-md-4">
-      {% if image_b64 %}
-      <div class="plant-image-frame mb-3">
-        <img src="data:image/jpeg;base64,{{ image_b64 }}" alt="Uploaded plant leaf">
-      </div>
-      {% endif %}
+    <!-- Left Column: Image Preview + Observations -->
+    <div class="col-lg-4">
 
-      <!-- Primary Confidence -->
-      <div class="card border-0 shadow-sm mb-3" style="border-radius:12px;">
-        <div class="card-body">
-          <h6 class="fw-bold text-success mb-3">
-            <i class="bi bi-graph-up me-2"></i>AI Confidence Score
-          </h6>
-          <div class="d-flex justify-content-between mb-1">
-            <span class="fw-semibold">{{ primary.display_name }}</span>
-            <span class="fw-bold text-success">{{ primary.confidence }}%</span>
-          </div>
-          <div class="confidence-bar-track mb-3">
-            <div class="confidence-bar-fill bg-success" id="conf-bar-1" style="width:0%"></div>
+      <!-- Image Preview -->
+      <div class="card treatment-card mb-4">
+        <div class="card-body p-3">
+          <div class="plant-image-frame mb-3">
+            {% if image_b64 %}
+              <img src="data:image/jpeg;base64,{{ image_b64 }}" alt="Sample Preview">
+            {% else %}
+              <div class="text-white p-5 text-center">
+                <i class="bi bi-image" style="font-size:3rem;opacity:0.4;"></i>
+                <p class="text-muted mt-2 mb-0">Image processed</p>
+              </div>
+            {% endif %}
           </div>
 
-          {% if predictions | length > 1 %}
-          <p class="text-muted small fw-semibold mb-2">Alternative Possibilities:</p>
-          {% for alt in predictions[1:] %}
-          <div class="d-flex justify-content-between mb-1">
-            <span class="text-muted small">{{ alt.display_name }}</span>
-            <span class="small text-muted">{{ alt.confidence }}%</span>
+          <!-- Confidence Meter -->
+          <div class="mb-2">
+            <div class="d-flex justify-content-between small fw-semibold text-muted mb-1">
+              <span>Diagnostic Confidence</span>
+              <span class="text-success fw-bold">{{ primary.confidence }}%</span>
+            </div>
+            <div class="confidence-bar-track">
+              <div class="confidence-bar-fill bg-success" style="width: {{ primary.confidence }}%;"></div>
+            </div>
           </div>
-          <div class="confidence-bar-track mb-2">
-            <div class="confidence-bar-fill bg-secondary" style="width:{{ alt.confidence }}%"></div>
-          </div>
-          {% endfor %}
-          {% endif %}
         </div>
       </div>
 
-      <!-- Action Buttons -->
+      <!-- Gemini AI Visual Assessment -->
+      <div class="card treatment-card mb-4" style="background: #fdfefe; border-left: 5px solid #2e7d32 !important;">
+        <div class="card-body p-4">
+          <h5 class="fw-bold text-success mb-2">
+            <i class="bi bi-eye-fill me-2"></i>AI Visual Observations
+          </h5>
+          <p class="text-muted mb-0" style="line-height: 1.6;" id="text-visual">
+            {{ primary.symptoms }}
+          </p>
+        </div>
+      </div>
+
+      <!-- Scan Another Button -->
       <div class="d-grid gap-2">
-        <a href="{{ url_for('plantdoctor.index') }}" class="btn btn-success fw-bold">
-          <i class="bi bi-camera me-1"></i> Diagnose Another Plant
+        <a href="{{ url_for('plantdoctor.index', scan_type='leaf' if not is_soil else 'soil') }}" class="btn btn-outline-success fw-bold py-2">
+          <i class="bi bi-arrow-repeat me-1"></i> Scan Another Sample
         </a>
-        {% if farmer %}
-        <a href="{{ url_for('plantdoctor.history') }}" class="btn btn-outline-secondary">
-          <i class="bi bi-clock-history me-1"></i> View My History
-        </a>
-        {% else %}
-        <a href="{{ url_for('auth.login') }}" class="btn btn-outline-primary">
-          <i class="bi bi-person-check me-1"></i> Login to Save Results
+        {% if is_soil %}
+        <a href="{{ url_for('soil.index') }}#calculator" class="btn btn-warning fw-bold py-2 text-dark">
+          <i class="bi bi-calculator-fill me-1"></i> Calculate NPK Bags
         </a>
         {% endif %}
-        <button onclick="window.print()" class="btn btn-outline-secondary">
-          <i class="bi bi-printer me-1"></i> Print Report
-        </button>
       </div>
+
     </div>
 
-    <!-- Right: Disease Info + Treatment -->
-    <div class="col-md-8">
+    <!-- Right Column: Scientific & Actionable Treatment Plan -->
+    <div class="col-lg-8">
 
-      <!-- Symptoms -->
-      <div class="card treatment-card mb-3">
-        <div class="card-body">
-          <h5 class="fw-bold text-danger mb-2">
-            <i class="bi bi-binoculars me-2"></i>Symptoms Identified
-          </h5>
-          <p class="mb-0">{{ primary.symptoms }}</p>
-        </div>
-      </div>
+      {% if is_soil %}
+      <!-- ═══ SOIL HEALTH RECOMMENDATIONS ═══ -->
 
-      <!-- Prevention -->
-      <div class="card treatment-card mb-3">
-        <div class="card-body">
-          <h5 class="fw-bold text-warning mb-2">
-            <i class="bi bi-shield-check me-2"></i>Prevention Measures
-          </h5>
-          <p class="mb-0">{{ primary.prevention }}</p>
-        </div>
-      </div>
-
-      <!-- Treatment -->
-      <div class="row g-3 mb-3">
-        <div class="col-md-6">
-          <div class="card treatment-card h-100 border-success border-opacity-25">
-            <div class="card-body">
-              <h6 class="fw-bold text-success mb-2">
-                <i class="bi bi-leaf-fill me-1"></i> Organic Treatment
-              </h6>
-              <p class="mb-0 small">{{ primary.organic_treatment }}</p>
-            </div>
+      <!-- 1. NPK Fertilizer Schedule -->
+      <div class="card treatment-card mb-4 border-start border-4 border-primary">
+        <div class="card-body p-4">
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <span class="fs-4">⚖️</span>
+            <h5 class="fw-bold text-primary mb-0">NPK Fertilizer Schedule & Basal Dosing</h5>
           </div>
-        </div>
-        <div class="col-md-6">
-          <div class="card treatment-card h-100 border-primary border-opacity-25">
-            <div class="card-body">
-              <h6 class="fw-bold text-primary mb-2">
-                <i class="bi bi-capsule-pill me-1"></i> Chemical Treatment
-              </h6>
-              <p class="mb-0 small">{{ primary.chemical_treatment }}</p>
-            </div>
+          <p class="text-dark mb-3" style="font-size: 1.05rem;" id="text-npk">
+            {{ primary.npk_advice if primary.npk_advice else 'Apply recommended NPK split doses to match crop vegetative stages.' }}
+          </p>
+          <div class="p-3 bg-light rounded-3 border">
+            <small class="text-muted d-block fw-semibold mb-1">Commercial Chemical Fertilizers & Soil Amendments:</small>
+            <p class="mb-0 text-dark" id="text-chemical">{{ primary.chemical_treatment }}</p>
           </div>
         </div>
       </div>
 
-      <!-- Alternative Diagnoses -->
-      {% if predictions | length > 1 %}
-      <div class="card treatment-card">
-        <div class="card-body">
-          <h6 class="fw-bold mb-3">
-            <i class="bi bi-list-check me-2 text-success"></i>Alternative Diagnoses Considered
-          </h6>
-          {% for alt in predictions[1:] %}
-          <div class="alt-diagnosis-card">
-            <div class="d-flex justify-content-between align-items-center">
-              <div>
-                <span class="fw-semibold">{{ alt.emoji }} {{ alt.display_name }}</span>
-                <span class="text-muted small ms-2">({{ alt.plant }})</span>
-              </div>
-              <span class="badge bg-secondary">{{ alt.confidence }}%</span>
-            </div>
-            <p class="text-muted small mb-0 mt-1">{{ alt.symptoms[:120] }}…</p>
+      <!-- 2. Organic Soil Enrichment -->
+      <div class="card treatment-card mb-4 border-start border-4 border-success">
+        <div class="card-body p-4">
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <span class="fs-4">🌱</span>
+            <h5 class="fw-bold text-success mb-0">Organic Carbon & Bio-Fertilizer Improvement</h5>
           </div>
-          {% endfor %}
-          <p class="text-muted mt-2 mb-0" style="font-size:0.8rem;">
-            <i class="bi bi-info-circle me-1"></i>
-            For a confirmed diagnosis, consult your local Krishi Vigyan Kendra (KVK) or agricultural extension officer.
+          <p class="text-dark mb-0" style="line-height:1.6;" id="text-organic">
+            {{ primary.organic_treatment }}
+          </p>
+        </div>
+      </div>
+
+      <!-- 3. Recommended High-Yield Crops -->
+      <div class="card treatment-card mb-4 border-start border-4 border-warning">
+        <div class="card-body p-4">
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <span class="fs-4">🌾</span>
+            <h5 class="fw-bold text-dark mb-0">Top Crops Suited for This Soil</h5>
+          </div>
+          <p class="text-muted small mb-3">Based on texture, drainage, and chemical nutrient retention of this soil type:</p>
+          <div>
+            {% if primary.suitable_crops %}
+              {% for crop in primary.suitable_crops.split(',') %}
+                <span class="soil-crop-pill"><i class="bi bi-check2 text-success me-1"></i>{{ crop.strip() }}</span>
+              {% endfor %}
+            {% else %}
+              <span class="soil-crop-pill">Wheat</span>
+              <span class="soil-crop-pill">Cotton</span>
+              <span class="soil-crop-pill">Soybean</span>
+              <span class="soil-crop-pill">Pulses</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. Soil Moisture & Conservation -->
+      <div class="card treatment-card mb-4 border-start border-4 border-info">
+        <div class="card-body p-4">
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <span class="fs-4">💧</span>
+            <h5 class="fw-bold text-info mb-0">Soil Moisture & Field Management</h5>
+          </div>
+          <p class="text-dark mb-0" style="line-height:1.6;" id="text-prevention">
+            {{ primary.prevention }}
+          </p>
+        </div>
+      </div>
+
+      {% else %}
+      <!-- ═══ LEAF & CROP DISEASE RECOMMENDATIONS ═══ -->
+
+      <!-- 1. Organic / Natural Solutions -->
+      <div class="card treatment-card mb-4 border-start border-4 border-success">
+        <div class="card-body p-4">
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <span class="fs-4">🌿</span>
+            <h5 class="fw-bold text-success mb-0">Organic & Bio-Remedies (Eco-Friendly)</h5>
+          </div>
+          <p class="text-dark mb-0" style="line-height: 1.6; font-size:1.02rem;" id="text-organic">
+            {{ primary.organic_treatment }}
+          </p>
+        </div>
+      </div>
+
+      <!-- 2. Targeted Chemical Treatment -->
+      <div class="card treatment-card mb-4 border-start border-4 border-danger">
+        <div class="card-body p-4">
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <span class="fs-4">💊</span>
+            <h5 class="fw-bold text-danger mb-0">Targeted Chemical Treatment & Spray Dosage</h5>
+          </div>
+          <p class="text-dark mb-2" style="line-height: 1.6; font-size:1.02rem;" id="text-chemical">
+            {{ primary.chemical_treatment }}
+          </p>
+          <small class="text-muted">
+            <i class="bi bi-exclamation-circle text-warning me-1"></i>
+            Follow safety instructions: spray during morning or late afternoon to protect beneficial pollinators.
+          </small>
+        </div>
+      </div>
+
+      <!-- 3. Plant Nutrition & Recovery -->
+      {% if primary.npk_advice %}
+      <div class="card treatment-card mb-4 border-start border-4 border-primary">
+        <div class="card-body p-4">
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <span class="fs-4">⚡</span>
+            <h5 class="fw-bold text-primary mb-0">Foliar Nutrient Boost & Recovery</h5>
+          </div>
+          <p class="text-dark mb-0" id="text-npk">
+            {{ primary.npk_advice }}
           </p>
         </div>
       </div>
       {% endif %}
 
-      {% if record_id %}
-      <div class="alert alert-success border-0 mt-3" style="border-radius:10px;">
-        <i class="bi bi-bookmark-check-fill me-2"></i>
-        <strong>Diagnosis saved to your history (Record #{{ record_id }})</strong>
+      <!-- 4. Prevention & Field Management -->
+      <div class="card treatment-card mb-4 border-start border-4 border-warning">
+        <div class="card-body p-4">
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <span class="fs-4">🛡️</span>
+            <h5 class="fw-bold text-dark mb-0">Prevention & Long-Term Crop Protection</h5>
+          </div>
+          <p class="text-dark mb-2" style="line-height: 1.6;" id="text-prevention">
+            {{ primary.prevention }}
+          </p>
+          {% if primary.suitable_crops %}
+          <div class="mt-3 pt-2 border-top">
+            <small class="text-muted fw-semibold">Recommended Crop Rotation / Barrier Crops:</small>
+            <p class="mb-0 text-success fw-semibold">{{ primary.suitable_crops }}</p>
+          </div>
+          {% endif %}
+        </div>
       </div>
+
       {% endif %}
 
     </div>
-  </div>
 
-  <!-- Helpline reminder -->
-  <div class="card border-0 shadow-sm mt-4 p-3" style="border-radius:12px; background:#f1f8e9;">
-    <div class="d-flex align-items-center gap-3">
-      <span style="font-size:2rem;">📞</span>
-      <div>
-        <strong>Need expert help?</strong>
-        Call the <strong>Kisan Call Center: 1800-180-1551</strong> (Toll Free, 6 AM – 10 PM)
-        or visit your nearest <strong>Krishi Vigyan Kendra (KVK)</strong> for free advisory.
-      </div>
-    </div>
   </div>
 
 </div>
-{% endblock %}
 
-{% block extra_scripts %}
 <script>
-// Animate confidence bar on page load
-window.addEventListener('load', () => {
-  const bar = document.getElementById('conf-bar-1');
-  if (bar) {
-    setTimeout(() => { bar.style.width = '{{ primary.confidence }}%'; }, 200);
+// Text-to-speech audio reader
+let isSpeaking = false;
+function speakResult() {
+  if (!('speechSynthesis' in window)) {
+    alert('Text-to-speech is not supported by your browser.');
+    return;
   }
-});
+
+  if (isSpeaking) {
+    window.speechSynthesis.cancel();
+    isSpeaking = false;
+    document.getElementById('btn-speak').innerHTML = '<i class="bi bi-volume-up-fill me-1"></i> Read Out Loud';
+    return;
+  }
+
+  const subject = "{{ primary.plant }}";
+  const diagnosis = "{{ primary.display_name }}";
+  const visual = document.getElementById('text-visual') ? document.getElementById('text-visual').innerText : '';
+  const organic = document.getElementById('text-organic') ? document.getElementById('text-organic').innerText : '';
+  const chemical = document.getElementById('text-chemical') ? document.getElementById('text-chemical').innerText : '';
+
+  const speechText = `Diagnosis for ${subject}. Condition is ${diagnosis}. Observations: ${visual}. Recommended organic solution: ${organic}. Recommended chemical solution: ${chemical}.`;
+
+  const utterance = new SpeechSynthesisUtterance(speechText);
+  utterance.rate = 0.95;
+
+  utterance.onend = function() {
+    isSpeaking = false;
+    document.getElementById('btn-speak').innerHTML = '<i class="bi bi-volume-up-fill me-1"></i> Read Out Loud';
+  };
+
+  window.speechSynthesis.speak(utterance);
+  isSpeaking = true;
+  document.getElementById('btn-speak').innerHTML = '<i class="bi bi-stop-fill me-1"></i> Stop Audio';
+}
 </script>
 {% endblock %}

@@ -1,7 +1,7 @@
 """
-PlantDoctor AI Blueprint
-Routes: /plantdoctor/  (upload page)
-        /plantdoctor/diagnose  (POST: run AI prediction)
+PlantDoctor & Soil AI Scanner Blueprint
+Routes: /plantdoctor/  (upload & camera scanner page with Leaf / Soil switcher)
+        /plantdoctor/diagnose  (POST: run Gemini Multimodal Vision AI prediction)
         /plantdoctor/history   (saved diagnoses for logged-in farmers)
         /plantdoctor/history/delete/<id>  (POST: delete a saved record)
 """
@@ -16,6 +16,7 @@ from flask import (
 )
 from app.database.db import get_db
 from app.routes.helpers import get_current_farmer
+from app.ml.gemini_vision import analyze_crop_or_soil, get_gemini_api_key
 
 plantdoctor_bp = Blueprint('plantdoctor', __name__)
 
@@ -44,17 +45,20 @@ def index():
         ).fetchone()
         history_count = row['cnt'] if row else 0
 
-    # Check which mode the AI is running in
-    try:
-        from app.ml.plant_disease_model import get_predictor
-        predictor = get_predictor()
-        ai_mode = predictor.mode
-    except Exception:
-        ai_mode = 'demo'
+    # Check initial scan target (from query param: ?scan_type=soil or leaf)
+    selected_scan_type = request.args.get('scan_type', request.args.get('target', 'auto'))
+    if selected_scan_type not in ('leaf', 'soil', 'auto'):
+        selected_scan_type = 'auto'
+
+    # Check Gemini API status
+    has_gemini = bool(get_gemini_api_key())
+    ai_mode = 'gemini_vision' if has_gemini else 'demo'
 
     return render_template('plantdoctor/index.html',
                            farmer=farmer,
                            ai_mode=ai_mode,
+                           has_gemini=has_gemini,
+                           selected_scan_type=selected_scan_type,
                            history_count=history_count)
 
 
@@ -68,61 +72,89 @@ def diagnose():
     image_bytes = None
     image_b64 = None
     source = request.form.get('source', 'upload')  # 'upload' or 'camera'
+    scan_type = request.form.get('scan_type', 'auto')
+    if scan_type not in ('leaf', 'soil', 'auto'):
+        scan_type = 'auto'
 
     # ── 1. Collect image bytes ────────────────────────────────
     if source == 'camera':
-        # Base64 data URL from camera capture
         data_url = request.form.get('camera_image_data', '')
         if not data_url or ',' not in data_url:
             flash('No camera image received. Please try again.', 'warning')
-            return redirect(url_for('plantdoctor.index'))
+            return redirect(url_for('plantdoctor.index', scan_type=scan_type))
         header, encoded = data_url.split(',', 1)
         image_bytes = base64.b64decode(encoded)
-        image_b64 = encoded  # Store for display
+        image_b64 = encoded
 
     else:
         # File upload
         if 'plant_image' not in request.files:
             flash('Please select an image file to upload.', 'warning')
-            return redirect(url_for('plantdoctor.index'))
+            return redirect(url_for('plantdoctor.index', scan_type=scan_type))
 
         file = request.files['plant_image']
         if not file or file.filename == '':
-            flash('No file selected. Please choose a plant leaf image.', 'warning')
-            return redirect(url_for('plantdoctor.index'))
+            flash('No file selected. Please choose a plant leaf or soil image.', 'warning')
+            return redirect(url_for('plantdoctor.index', scan_type=scan_type))
 
         if not allowed_file(file.filename):
             flash('Invalid file type. Please upload a JPG, PNG, or WEBP image.', 'danger')
-            return redirect(url_for('plantdoctor.index'))
+            return redirect(url_for('plantdoctor.index', scan_type=scan_type))
 
         image_bytes = file.read()
         if len(image_bytes) > MAX_FILE_SIZE_MB * 1024 * 1024:
             flash(f'Image too large. Maximum size is {MAX_FILE_SIZE_MB} MB.', 'danger')
-            return redirect(url_for('plantdoctor.index'))
+            return redirect(url_for('plantdoctor.index', scan_type=scan_type))
 
-        # Convert to base64 for display in results page
         import base64 as _b64
         image_b64 = _b64.b64encode(image_bytes).decode('utf-8')
 
-    # ── 2. Run AI prediction ──────────────────────────────────
+    # ── 2. Run Gemini Multimodal Vision Prediction ────────────
+    lang = session.get('lang', 'en')
     try:
-        from app.ml.plant_disease_model import get_predictor
-        predictor = get_predictor()
-        result = predictor.predict(image_bytes)
+        analysis = analyze_crop_or_soil(image_bytes, target_hint=scan_type, language=lang)
     except Exception as exc:
-        current_app.logger.error(f"PlantDoctor prediction error: {exc}")
-        flash('AI engine error. Please try again with a clearer image.', 'danger')
-        return redirect(url_for('plantdoctor.index'))
+        current_app.logger.error(f"Gemini Vision prediction exception: {exc}")
+        analysis = None
 
-    primary = result['primary']
-    predictions = result['predictions']
-    ai_mode = result['mode']
+    if not analysis:
+        flash('AI analysis error. Please try again with a clearer image.', 'danger')
+        return redirect(url_for('plantdoctor.index', scan_type=scan_type))
+
+    # Standardize primary structure for template & backwards compatibility
+    primary = {
+        'display_name': analysis['health_status'],
+        'plant': analysis['subject_name'],
+        'confidence': analysis['confidence'],
+        'severity': analysis['severity'],
+        'symptoms': analysis['visual_analysis'],
+        'organic_treatment': analysis['organic_treatment'],
+        'chemical_treatment': analysis['chemical_treatment'],
+        'npk_advice': analysis.get('npk_advice', ''),
+        'prevention': analysis['prevention_tips'],
+        'suitable_crops': analysis.get('suitable_crops', ''),
+        'emoji': analysis['emoji'],
+    }
+
+    predictions = [
+        {
+            'name': analysis['health_status'],
+            'confidence': analysis['confidence'],
+            'display_name': analysis['health_status'],
+            'plant': analysis['subject_name'],
+            'severity': analysis['severity'],
+            'is_healthy': 'healthy' in analysis['health_status'].lower() or 'healthy' in analysis['severity'].lower()
+        }
+    ]
+
+    ai_mode = analysis.get('mode', 'gemini_ai')
 
     # ── 3. Auto-save to history if farmer is logged in ────────
     record_id = None
     if farmer:
         try:
             db = get_db()
+            tag = f"[{analysis['scan_type'].upper()}]"
             cur = db.execute(
                 '''INSERT INTO diagnosis_history
                    (farmer_id, disease_name, plant_name, confidence_score,
@@ -130,14 +162,14 @@ def diagnose():
                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)''',
                 (
                     farmer['id'],
-                    primary['display_name'],
-                    primary['plant'],
-                    primary['confidence'],
-                    primary['severity'],
-                    ai_mode,
-                    primary['symptoms'][:300],
-                    primary['chemical_treatment'][:300],
-                    image_b64[:50000] if image_b64 else None,  # Store compressed preview
+                    analysis['health_status'],
+                    f"{tag} {analysis['subject_name']}",
+                    analysis['confidence'],
+                    analysis['severity'],
+                    analysis['ai_engine'],
+                    analysis['visual_analysis'][:300],
+                    f"Organic: {analysis['organic_treatment'][:140]} | Chemical/NPK: {analysis['chemical_treatment'][:140]}",
+                    image_b64[:50000] if image_b64 else None,
                 )
             )
             db.commit()
@@ -148,6 +180,7 @@ def diagnose():
     return render_template(
         'plantdoctor/result.html',
         farmer=farmer,
+        analysis=analysis,
         primary=primary,
         predictions=predictions,
         image_b64=image_b64,

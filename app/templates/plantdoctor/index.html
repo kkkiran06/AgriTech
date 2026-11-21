@@ -1,12 +1,34 @@
 {% extends 'base.html' %}
-{% block title %}PlantDoctor AI — KrishiMitra{% endblock %}
+{% block title %}AI Plant & Soil Scanner — KrishiMitra{% endblock %}
 
 {% block extra_head %}
 <style>
   .plantdoctor-hero {
-    background: linear-gradient(135deg, #1a4731 0%, #2d7a4f 50%, #4caf50 100%);
+    background: linear-gradient(135deg, #1b382b 0%, #2e7d32 50%, #43a047 100%);
     padding: 3rem 0 2rem;
     color: white;
+  }
+  .scan-type-card {
+    border: 2px solid #e0e0e0;
+    border-radius: 14px;
+    padding: 1rem 1.25rem;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    background: white;
+    text-align: left;
+  }
+  .scan-type-card:hover {
+    border-color: #2e7d32;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 14px rgba(46,125,50,0.15);
+  }
+  .scan-type-card.active {
+    border-color: #2e7d32;
+    background: #f1f8e9;
+    box-shadow: 0 4px 15px rgba(46,125,50,0.2);
+  }
+  .scan-type-card.active .scan-check-icon {
+    display: inline-block !important;
   }
   .upload-zone {
     border: 3px dashed #4caf50;
@@ -30,7 +52,7 @@
     border-style: solid;
   }
   #preview-img {
-    max-height: 200px;
+    max-height: 220px;
     max-width: 100%;
     border-radius: 10px;
     box-shadow: 0 4px 15px rgba(0,0,0,0.15);
@@ -39,7 +61,7 @@
     border-radius: 16px;
     overflow: hidden;
     background: #000;
-    min-height: 220px;
+    min-height: 240px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -55,14 +77,14 @@
   .feature-card {
     border: none;
     border-radius: 12px;
-    padding: 1.5rem;
+    padding: 1.25rem 1rem;
     text-align: center;
     background: white;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
     transition: transform 0.2s;
   }
-  .feature-card:hover { transform: translateY(-4px); }
-  .feature-icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
+  .feature-card:hover { transform: translateY(-3px); }
+  .feature-icon { font-size: 2.2rem; margin-bottom: 0.5rem; }
   .tab-btn { border-radius: 50px; font-weight: 600; }
   .tab-btn.active { background: #2d7a4f; color: white; border-color: #2d7a4f; }
   .analyzing-spinner { display: none; }
@@ -76,25 +98,25 @@
 
 {% block content %}
 
-<!-- Hero -->
+<!-- Hero Header -->
 <div class="plantdoctor-hero">
   <div class="container text-center">
     <div class="d-flex align-items-center justify-content-center gap-3 mb-3">
       <span style="font-size:3rem">🔬</span>
       <div>
-        <h1 class="fw-bold mb-0">PlantDoctor AI</h1>
-        <p class="mb-0 opacity-75">AI-Powered Plant Disease Detection</p>
+        <h1 class="fw-bold mb-0">PlantDoctor & Soil AI Scanner</h1>
+        <p class="mb-0 opacity-75">AI-Powered Leaf Disease Detection & Soil Health Diagnostics</p>
       </div>
     </div>
 
     <!-- AI Mode Badge -->
-    {% if ai_mode == 'ai' %}
-      <span class="badge mode-badge-ai px-3 py-2 fs-6">
-        <i class="bi bi-cpu-fill me-1"></i> AI Model Active — MobileNetV2 (PlantVillage 38 Classes)
+    {% if has_gemini %}
+      <span class="badge mode-badge-ai px-3 py-2 fs-6 shadow-sm">
+        <i class="bi bi-stars text-warning me-1"></i> Google Gemini Vision AI Active · AgriTech (3.1 Flash)
       </span>
     {% else %}
-      <span class="badge mode-badge-demo px-3 py-2 fs-6">
-        <i class="bi bi-flask me-1"></i> Demo Simulation Mode — Hackathon Demonstration
+      <span class="badge mode-badge-demo px-3 py-2 fs-6 shadow-sm">
+        <i class="bi bi-cpu-fill me-1"></i> MobileNetV2 Offline Vision Active
       </span>
     {% endif %}
 
@@ -111,39 +133,65 @@
 
 <div class="container py-4">
 
-  <!-- How It Works -->
-  <div class="row g-3 mb-4">
-    <div class="col-6 col-md-3">
-      <div class="feature-card">
-        <div class="feature-icon">📸</div>
-        <div class="fw-semibold small">1. Upload or Capture</div>
-        <div class="text-muted" style="font-size:0.78rem">Photo of affected leaf</div>
+  <!-- Step 1: Select Scan Target (Leaf vs Soil vs Auto) -->
+  <div class="mb-4">
+    <label class="form-label fw-bold text-dark fs-5 mb-2">
+      <i class="bi bi-bullseye text-success me-1"></i> Step 1: What are you scanning today?
+    </label>
+    <div class="row g-3">
+      <!-- Leaf Card -->
+      <div class="col-md-4">
+        <div class="scan-type-card {% if selected_scan_type == 'leaf' %}active{% endif %}"
+             id="card-leaf" onclick="selectScanType('leaf')">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span class="fs-3">🍃</span>
+            <i class="bi bi-check-circle-fill text-success fs-5 scan-check-icon"
+               style="display: {% if selected_scan_type == 'leaf' %}inline-block{% else %}none{% endif %};"></i>
+          </div>
+          <h5 class="fw-bold text-success mb-1">Crop Leaf Health</h5>
+          <p class="text-muted small mb-0">Identify plant diseases, insect attacks, yellowing, fungal spots & spray remedies.</p>
+        </div>
       </div>
-    </div>
-    <div class="col-6 col-md-3">
-      <div class="feature-card">
-        <div class="feature-icon">🧠</div>
-        <div class="fw-semibold small">2. AI Analysis</div>
-        <div class="text-muted" style="font-size:0.78rem">MobileNetV2 inference</div>
+
+      <!-- Soil Card -->
+      <div class="col-md-4">
+        <div class="scan-type-card {% if selected_scan_type == 'soil' %}active{% endif %}"
+             id="card-soil" onclick="selectScanType('soil')">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span class="fs-3">🧪</span>
+            <i class="bi bi-check-circle-fill text-success fs-5 scan-check-icon"
+               style="display: {% if selected_scan_type == 'soil' %}inline-block{% else %}none{% endif %};"></i>
+          </div>
+          <h5 class="fw-bold text-success mb-1">Farm Soil Health</h5>
+          <p class="text-muted small mb-0">Identify soil type (Black, Red, Alluvial, Loam), texture, fertility & custom NPK dosages.</p>
+        </div>
       </div>
-    </div>
-    <div class="col-6 col-md-3">
-      <div class="feature-card">
-        <div class="feature-icon">🩺</div>
-        <div class="fw-semibold small">3. Get Diagnosis</div>
-        <div class="text-muted" style="font-size:0.78rem">Disease name + confidence</div>
-      </div>
-    </div>
-    <div class="col-6 col-md-3">
-      <div class="feature-card">
-        <div class="feature-icon">💊</div>
-        <div class="fw-semibold small">4. Treatment Plan</div>
-        <div class="text-muted" style="font-size:0.78rem">Organic + chemical options</div>
+
+      <!-- Auto Detect Card -->
+      <div class="col-md-4">
+        <div class="scan-type-card {% if selected_scan_type == 'auto' %}active{% endif %}"
+             id="card-auto" onclick="selectScanType('auto')">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span class="fs-3">✨</span>
+            <i class="bi bi-check-circle-fill text-success fs-5 scan-check-icon"
+               style="display: {% if selected_scan_type == 'auto' %}inline-block{% else %}none{% endif %};"></i>
+          </div>
+          <h5 class="fw-bold text-success mb-1">Smart Auto-Detect</h5>
+          <p class="text-muted small mb-0">Let Gemini AI automatically recognize whether the sample is a crop leaf or farm soil.</p>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- Main Upload Card -->
+  <!-- Dynamic Guidance Banner -->
+  <div class="alert alert-success border-0 shadow-sm d-flex align-items-center mb-4" id="guidance-banner" style="border-radius:12px;">
+    <i class="bi bi-lightbulb-fill text-warning fs-3 me-3"></i>
+    <div id="guidance-text">
+      <strong>Smart Scanner Guidance:</strong> Position your camera clearly in good natural daylight for maximum AI accuracy.
+    </div>
+  </div>
+
+  <!-- Main Upload & Camera Card -->
   <div class="card border-0 shadow-sm" style="border-radius:16px;">
     <div class="card-body p-4">
 
@@ -161,13 +209,16 @@
       <div id="panel-upload">
         <form method="POST" action="{{ url_for('plantdoctor.diagnose') }}" enctype="multipart/form-data" id="upload-form">
           <input type="hidden" name="source" value="upload">
+          <input type="hidden" name="scan_type" id="upload-scan-type" value="{{ selected_scan_type }}">
 
           <div class="upload-zone" id="upload-zone" onclick="document.getElementById('plant-image-input').click()">
             <div id="upload-placeholder" class="text-center p-3">
               <i class="bi bi-cloud-arrow-up text-success" style="font-size:3.5rem;"></i>
-              <p class="fw-semibold text-success mt-2 mb-1">Click or Drag & Drop</p>
+              <p class="fw-semibold text-success mt-2 mb-1">Click or Drag & Drop Photo Here</p>
               <p class="text-muted small mb-2">JPG, PNG, WEBP · Max 10 MB</p>
-              <p class="text-muted" style="font-size:0.8rem">🌿 Best results: single leaf, good lighting, plain background</p>
+              <p class="text-muted mb-0" id="upload-hint-text" style="font-size:0.82rem">
+                🌿 Best results: Clear image with good lighting and focused subject
+              </p>
             </div>
             <div id="upload-preview" class="text-center p-2" style="display:none;">
               <img id="preview-img" src="" alt="Preview">
@@ -181,15 +232,15 @@
           <input type="file" id="plant-image-input" name="plant_image"
                  accept="image/*" class="d-none" onchange="previewUpload(this)">
 
-          <div class="mt-3 text-center">
-            <button type="submit" class="btn btn-success btn-lg px-5 fw-bold" id="diagnose-btn" disabled>
+          <div class="mt-4 text-center">
+            <button type="submit" class="btn btn-success btn-lg px-5 fw-bold shadow-sm" id="diagnose-btn" disabled>
               <span class="analyzing-spinner spinner-border spinner-border-sm me-2" id="upload-spinner"></span>
-              <i class="bi bi-search-heart me-2" id="diagnose-icon"></i>
-              Diagnose My Plant
+              <i class="bi bi-stars me-2" id="diagnose-icon"></i>
+              <span id="submit-btn-label">Analyse With Gemini AI</span>
             </button>
             <p class="text-muted mt-2" style="font-size:0.8rem">
               <i class="bi bi-shield-check text-success me-1"></i>
-              Images are processed locally and not stored permanently
+              Instant Multimodal Analysis · Scientific Indian Agronomy Dosage (ICAR Standards)
             </p>
           </div>
         </form>
@@ -199,20 +250,21 @@
       <div id="panel-camera" style="display:none;">
         <form method="POST" action="{{ url_for('plantdoctor.diagnose') }}" id="camera-form">
           <input type="hidden" name="source" value="camera">
+          <input type="hidden" name="scan_type" id="camera-scan-type" value="{{ selected_scan_type }}">
           <input type="hidden" name="camera_image_data" id="camera-image-data">
 
           <div class="camera-box mb-3" id="camera-box">
             <div class="text-white text-center p-4" id="camera-placeholder">
               <i class="bi bi-camera-fill" style="font-size:4rem; opacity:0.5;"></i>
-              <p class="mt-2 opacity-75">Click "Start Camera" to begin</p>
+              <p class="mt-2 opacity-75">Click "Start Camera" to capture leaf or soil</p>
             </div>
             <video id="camera-feed" autoplay playsinline></video>
           </div>
           <canvas id="camera-canvas" width="640" height="480"></canvas>
 
           <div id="camera-captured-preview" class="text-center mb-3" style="display:none;">
-            <img id="captured-img" src="" alt="Captured" style="max-height:200px;border-radius:10px;box-shadow:0 4px 15px rgba(0,0,0,0.15);">
-            <p class="text-success mt-2 fw-semibold small">📸 Image captured! Ready for diagnosis.</p>
+            <img id="captured-img" src="" alt="Captured" style="max-height:220px;border-radius:10px;box-shadow:0 4px 15px rgba(0,0,0,0.15);">
+            <p class="text-success mt-2 fw-semibold small">📸 Photo captured! Ready for Gemini AI analysis.</p>
           </div>
 
           <div class="d-flex justify-content-center gap-2 flex-wrap">
@@ -225,8 +277,8 @@
             <button type="button" class="btn btn-outline-secondary d-none" id="btn-retake" onclick="retakePhoto()">
               <i class="bi bi-arrow-counterclockwise me-1"></i> Retake
             </button>
-            <button type="submit" class="btn btn-primary btn-lg fw-bold d-none px-4" id="btn-cam-diagnose">
-              <i class="bi bi-search-heart me-2"></i> Diagnose
+            <button type="submit" class="btn btn-primary btn-lg fw-bold d-none px-5 shadow-sm" id="btn-cam-diagnose">
+              <i class="bi bi-stars me-2"></i> Analyse With Gemini AI
             </button>
           </div>
         </form>
@@ -235,66 +287,113 @@
     </div>
   </div>
 
-  <!-- Supported Crops -->
-  <div class="card border-0 shadow-sm mt-4" style="border-radius:16px;">
-    <div class="card-body p-4">
-      <h5 class="fw-bold text-success mb-3">
-        <i class="bi bi-check-circle-fill me-2"></i>Supported Plants (PlantVillage Dataset)
-      </h5>
-      <div class="d-flex flex-wrap gap-2">
-        {% for plant, emoji in [
-          ('Tomato','🍅'),('Potato','🥔'),('Corn/Maize','🌽'),('Apple','🍎'),
-          ('Grape','🍇'),('Orange/Citrus','🍊'),('Peach','🍑'),('Cherry','🍒'),
-          ('Bell Pepper','🫑'),('Strawberry','🍓'),('Squash','🎃'),
-          ('Soybean','🌿'),('Raspberry','🫐'),('Blueberry','🫐')
-        ] %}
-        <span class="badge bg-light text-dark border px-3 py-2 fs-6">{{ emoji }} {{ plant }}</span>
-        {% endfor %}
+  <!-- How Gemini Multimodal AI Works -->
+  <div class="row g-3 mt-4">
+    <div class="col-6 col-md-3">
+      <div class="feature-card">
+        <div class="feature-icon">📸</div>
+        <div class="fw-semibold small">1. Capture Sample</div>
+        <div class="text-muted" style="font-size:0.78rem">Crop leaf or topsoil photo</div>
       </div>
-      <p class="text-muted mt-3 mb-0 small">
-        <i class="bi bi-info-circle me-1"></i>
-        For best results, photograph a single leaf in clear daylight with the affected area clearly visible.
-      </p>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="feature-card">
+        <div class="feature-icon">🧠</div>
+        <div class="fw-semibold small">2. Gemini 3.1 Vision</div>
+        <div class="text-muted" style="font-size:0.78rem">Multimodal neural reasoning</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="feature-card">
+        <div class="feature-icon">🩺</div>
+        <div class="fw-semibold small">3. Health Assessment</div>
+        <div class="text-muted" style="font-size:0.78rem">Disease or soil classification</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="feature-card">
+        <div class="feature-icon">💊</div>
+        <div class="fw-semibold small">4. Exact Dosage</div>
+        <div class="text-muted" style="font-size:0.78rem">Organic & scientific NPK plan</div>
+      </div>
     </div>
   </div>
 
-  {% if not farmer %}
-  <div class="alert alert-info border-0 shadow-sm mt-4" style="border-radius:12px;">
-    <i class="bi bi-person-check-fill me-2"></i>
-    <strong>Login to save your diagnosis history.</strong>
-    <a href="{{ url_for('auth.login') }}" class="btn btn-sm btn-primary ms-2">Login</a>
-    <a href="{{ url_for('auth.register') }}" class="btn btn-sm btn-outline-primary ms-1">Register Free</a>
-  </div>
-  {% endif %}
-
 </div>
-{% endblock %}
 
-{% block extra_scripts %}
 <script>
-// ── Tab switching ─────────────────────────────────────────
-function switchTab(tab) {
-  document.getElementById('panel-upload').style.display = tab === 'upload' ? '' : 'none';
-  document.getElementById('panel-camera').style.display = tab === 'camera' ? '' : 'none';
-  document.getElementById('tab-upload').classList.toggle('active', tab === 'upload');
-  document.getElementById('tab-camera').classList.toggle('active', tab === 'camera');
-  if (tab !== 'camera') stopCamera();
+let currentScanType = "{{ selected_scan_type }}";
+
+function selectScanType(type) {
+  currentScanType = type;
+  document.getElementById('upload-scan-type').value = type;
+  document.getElementById('camera-scan-type').value = type;
+
+  ['leaf', 'soil', 'auto'].forEach(t => {
+    const card = document.getElementById('card-' + t);
+    const check = card.querySelector('.scan-check-icon');
+    if (t === type) {
+      card.classList.add('active');
+      check.style.display = 'inline-block';
+    } else {
+      card.classList.remove('active');
+      check.style.display = 'none';
+    }
+  });
+
+  const guidanceText = document.getElementById('guidance-text');
+  const uploadHint = document.getElementById('upload-hint-text');
+  const submitBtnLabel = document.getElementById('submit-btn-label');
+
+  if (type === 'leaf') {
+    guidanceText.innerHTML = '<strong>Leaf Doctor Mode:</strong> Focus closely on affected leaves showing discoloration, wilting, insect damage, or spotting.';
+    uploadHint.innerText = '🌿 Tip: Capture a single leaf with good lighting against a plain background.';
+    submitBtnLabel.innerText = 'Diagnose Plant Leaf';
+  } else if (type === 'soil') {
+    guidanceText.innerHTML = '<strong>Soil Health Mode:</strong> Take a clear photo of your field soil in natural daylight to determine texture, color, and fertilizer schedule.';
+    uploadHint.innerText = '🧪 Tip: Remove dry weeds/stones; take a photo of fresh damp topsoil from 10-15 cm depth.';
+    submitBtnLabel.innerText = 'Analyse Soil Health & NPK';
+  } else {
+    guidanceText.innerHTML = '<strong>Smart Auto-Detect Mode:</strong> Point your camera at any crop foliage or farm soil. Gemini AI will identify the subject automatically.';
+    uploadHint.innerText = '✨ Tip: Works for all Indian crops, vegetables, and regional soil types.';
+    submitBtnLabel.innerText = 'Analyse With Gemini AI';
+  }
 }
 
-// ── Upload preview ────────────────────────────────────────
+// Initialize label & hint
+selectScanType(currentScanType);
+
+// Tab switching
+function switchTab(tab) {
+  if (tab === 'upload') {
+    document.getElementById('panel-upload').style.display = '';
+    document.getElementById('panel-camera').style.display = 'none';
+    document.getElementById('tab-upload').classList.add('active');
+    document.getElementById('tab-camera').classList.remove('active');
+    stopCamera();
+  } else {
+    document.getElementById('panel-upload').style.display = 'none';
+    document.getElementById('panel-camera').style.display = '';
+    document.getElementById('tab-camera').classList.add('active');
+    document.getElementById('tab-upload').classList.remove('active');
+  }
+}
+
+// Upload preview
 function previewUpload(input) {
-  const file = input.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    document.getElementById('preview-img').src = e.target.result;
-    document.getElementById('preview-name').textContent = `📁 ${file.name} (${(file.size/1024).toFixed(0)} KB)`;
-    document.getElementById('upload-placeholder').style.display = 'none';
-    document.getElementById('upload-preview').style.display = '';
-    document.getElementById('upload-zone').classList.add('has-image');
-    document.getElementById('diagnose-btn').disabled = false;
-  };
-  reader.readAsDataURL(file);
+  if (input.files && input.files[0]) {
+    const file = input.files[0];
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      document.getElementById('preview-img').src = e.target.result;
+      document.getElementById('preview-name').textContent = file.name + ' (' + (file.size/1024).toFixed(0) + ' KB)';
+      document.getElementById('upload-placeholder').style.display = 'none';
+      document.getElementById('upload-preview').style.display = '';
+      document.getElementById('upload-zone').classList.add('has-image');
+      document.getElementById('diagnose-btn').disabled = false;
+    };
+    reader.readAsDataURL(file);
+  }
 }
 
 function clearUpload(e) {
@@ -325,9 +424,7 @@ document.getElementById('upload-form').addEventListener('submit', () => {
   document.getElementById('upload-spinner').style.display = 'inline-block';
   document.getElementById('diagnose-icon').style.display = 'none';
   document.getElementById('diagnose-btn').disabled = true;
-  document.getElementById('diagnose-btn').textContent = '';
-  document.getElementById('diagnose-btn').insertAdjacentHTML('afterbegin',
-    '<span class="spinner-border spinner-border-sm me-2"></span>Analysing…');
+  document.getElementById('submit-btn-label').textContent = 'Gemini AI Analysing…';
 });
 
 // ── Camera ────────────────────────────────────────────────
