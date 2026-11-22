@@ -5,10 +5,13 @@ with automatic Google Gemini AI fallback for comprehensive, natural answers.
 """
 import re
 import math
+import json
+import base64
 import logging
+import requests
 from typing import List, Dict, Any, Optional
 from app.rag.knowledge_data import AGRICULTURAL_KNOWLEDGE_BASE
-from app.ml.gemini_vision import get_gemini_api_key
+from app.ml.gemini_vision import get_gemini_api_key, GEMINI_MODELS
 
 logger = logging.getLogger(__name__)
 
@@ -93,13 +96,10 @@ class AgriculturalRAGEngine:
                 "provider": "KrishiMitra RAG"
             }
 
-        # 1. Try Gemini Generative AI
+        # 1. Try Gemini Generative AI via direct REST API
         gemini_key = get_gemini_api_key()
         if gemini_key:
-            try:
-                from google import genai
-                client = genai.Client(api_key=gemini_key)
-                prompt = f"""You are KrishiMitra's expert Senior Agricultural Scientist and Agronomist.
+            prompt = f"""You are KrishiMitra's expert Senior Agricultural Scientist and Agronomist.
 You advise Indian farmers following ICAR (Indian Council of Agricultural Research) and State Agricultural Universities (UAS) Package of Practices.
 
 Farmer's Question: {user_query}
@@ -113,22 +113,29 @@ Please provide a concise, practical, and farmer-friendly answer:
 
 Use clean bullet points and maintain a supportive, practical tone.
 """
-                response = client.models.generate_content(
-                    model="gemini-2.5-flash",
-                    contents=prompt
-                )
-                if response and response.text:
-                    return {
-                        "query": user_query,
-                        "status": "gemini_grounded",
-                        "answer": response.text.strip(),
-                        "crop": crop_context or "Agricultural Advisory",
-                        "sources": ["ICAR Package of Practices", "Google Gemini AI (Real-time)"],
-                        "provider": "Google Gemini AI",
-                        "model": "gemini-2.5-flash"
-                    }
-            except Exception as e:
-                logger.warning(f"Gemini RAG query failed: {e}. Falling back to local ICAR corpus.")
+            payload = {
+                "contents": [{"parts": [{"text": prompt}]}],
+                "generationConfig": {"temperature": 0.2}
+            }
+
+            for model_name in GEMINI_MODELS:
+                url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={gemini_key}"
+                try:
+                    resp = requests.post(url, json=payload, timeout=20)
+                    if resp.status_code == 200:
+                        body = resp.json()
+                        text_ans = body['candidates'][0]['content']['parts'][0]['text'].strip()
+                        return {
+                            "query": user_query,
+                            "status": "gemini_grounded",
+                            "answer": text_ans,
+                            "crop": crop_context or "Agricultural Advisory",
+                            "sources": ["ICAR Package of Practices", f"Google Gemini AI ({model_name})"],
+                            "provider": "Google Gemini AI",
+                            "model": model_name
+                        }
+                except Exception as e:
+                    logger.warning(f"Gemini RAG query with {model_name} failed: {e}")
 
         # 2. Local Static RAG Fallback
         retrieved_docs = self.search(user_query, top_k=2)
@@ -180,6 +187,86 @@ Use clean bullet points and maintain a supportive, practical tone.
                 "Prefer biological controls (Trichoderma, Pseudomonas, Neem) as first-line defense.",
                 "Always adhere to safety intervals before harvesting produce."
             ],
+        }
+
+    def answer_audio_query(self, audio_bytes: bytes, mime_type: str = "audio/webm", language: str = "en") -> Dict[str, Any]:
+        """
+        Process audio input using Google Gemini Multimodal Audio API.
+        Transcribes the farmer's spoken question and provides an agronomic diagnosis.
+        """
+        gemini_key = get_gemini_api_key()
+        if not gemini_key:
+            return {
+                "transcript": "Audio received (API offline)",
+                "answer": "Google Gemini API key is not configured for voice transcription. Please type your query in the box below.",
+                "crop": "General Agriculture",
+                "sources": [],
+                "provider": "KrishiMitra Audio Engine"
+            }
+
+        b64_audio = base64.b64encode(audio_bytes).decode('utf-8')
+        prompt = f"""You are KrishiMitra's expert Senior Agricultural Scientist and Agronomist.
+The user has provided an audio recording of their question in an Indian language (e.g., Hindi, Kannada, Telugu, Tamil, Marathi) or English.
+
+1. Listen to the audio and transcribe the exact question asked by the farmer.
+2. Provide a practical agricultural diagnosis and recommendation following ICAR (Indian Council of Agricultural Research) standards.
+
+Return a valid JSON object strictly matching this schema:
+{{
+  "transcript": "Exact transcription of the farmer's spoken question",
+  "language": "Detected language (e.g. Kannada, Hindi, English, Telugu)",
+  "crop": "Crop mentioned or Agricultural Advisory",
+  "answer": "Clear agricultural answer: direct advice, organic remedies, chemical treatment with dosage, and prevention tips."
+}}
+"""
+        payload = {
+            "contents": [{
+                "parts": [
+                    {"text": prompt},
+                    {
+                        "inline_data": {
+                            "mime_type": mime_type,
+                            "data": b64_audio
+                        }
+                    }
+                ]
+            }],
+            "generationConfig": {
+                "response_mime_type": "application/json",
+                "temperature": 0.2
+            }
+        }
+
+        for model_name in GEMINI_MODELS:
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={gemini_key}"
+            try:
+                resp = requests.post(url, json=payload, timeout=30)
+                if resp.status_code == 200:
+                    body = resp.json()
+                    raw_text = body['candidates'][0]['content']['parts'][0]['text']
+                    data = json.loads(raw_text)
+                    transcript_text = data.get("transcript", "").strip() or "Audio question processed"
+                    answer_text = data.get("answer", "").strip()
+                    return {
+                        "query": transcript_text,
+                        "transcript": transcript_text,
+                        "answer": answer_text,
+                        "crop": data.get("crop", "Agricultural Advisory"),
+                        "sources": ["ICAR Package of Practices", f"Google Gemini Multimodal Audio ({model_name})"],
+                        "provider": "Google Gemini Voice AI",
+                        "model": model_name,
+                        "status": "audio_processed"
+                    }
+            except Exception as e:
+                logger.warning(f"Audio query error with {model_name}: {e}")
+
+        # Fallback if audio processing encounters network issues
+        return {
+            "transcript": "Voice Audio Clip",
+            "answer": "We received your voice audio clip, but cloud transcription timed out. Please try speaking again or type your question below.",
+            "crop": "General Agriculture",
+            "sources": [],
+            "provider": "KrishiMitra Voice Fallback"
         }
 
 rag_engine = AgriculturalRAGEngine()

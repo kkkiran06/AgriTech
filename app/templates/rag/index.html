@@ -2,6 +2,43 @@
 
 {% block title %}AI Agri-Advisor & Voice Assistant - KrishiMitra{% endblock %}
 
+{% block extra_head %}
+<style>
+  .recording-pulse {
+    animation: pulse-red 1.5s infinite;
+  }
+  @keyframes pulse-red {
+    0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); }
+    70% { box-shadow: 0 0 0 12px rgba(220, 53, 69, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
+  }
+  .audio-wave {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    height: 18px;
+  }
+  .audio-wave span {
+    display: inline-block;
+    width: 3px;
+    height: 100%;
+    background-color: #dc3545;
+    border-radius: 3px;
+    animation: wave-bar 1s ease-in-out infinite alternate;
+  }
+  .audio-wave span:nth-child(2) { animation-delay: 0.2s; }
+  .audio-wave span:nth-child(3) { animation-delay: 0.4s; }
+  .audio-wave span:nth-child(4) { animation-delay: 0.6s; }
+  @keyframes wave-bar {
+    0% { height: 4px; }
+    100% { height: 18px; }
+  }
+  .nav-pills .nav-link.active {
+    background-color: #059669;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container py-4">
 
@@ -11,21 +48,21 @@
       <div>
         <div class="d-flex align-items-center gap-2 mb-2">
           <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 small">
-            <i class="bi bi-stars me-1"></i> Gemini AI &amp; ICAR Knowledge Base
+            <i class="bi bi-stars me-1"></i> Gemini Multimodal AI &amp; ICAR Knowledge
           </span>
-          <span class="badge bg-light text-muted border small">Voice &amp; Text</span>
+          <span class="badge bg-light text-muted border small">Voice Audio &amp; Text</span>
         </div>
         <h2 class="fw-bold mb-1 text-dark" style="letter-spacing: -0.5px;">
           Agricultural AI Knowledge &amp; Voice Assistant
         </h2>
         <p class="text-muted small mb-0">
-          Ask questions in English or Indian regional languages about crop cultivation, pest remedies, fertilizers, or government schemes.
+          Ask questions in English or Indian regional languages by speaking into the microphone, recording a voice note, or typing.
         </p>
       </div>
 
       <!-- Language Selector for Speech -->
       <div class="d-flex align-items-center gap-2">
-        <label for="voiceLang" class="form-label mb-0 small text-muted text-nowrap">Voice Language:</label>
+        <label for="voiceLang" class="form-label mb-0 small text-muted text-nowrap">Spoken Language:</label>
         <select class="form-select form-select-sm" id="voiceLang" style="width: auto; border-radius: 8px;">
           <option value="en-IN" selected>English (India)</option>
           <option value="hi-IN">हिन्दी (Hindi)</option>
@@ -41,7 +78,7 @@
   <div class="row g-4">
     <!-- Left Column: Chat & Voice Interface -->
     <div class="col-lg-8">
-      <div class="card border-0 shadow-sm bg-white d-flex flex-column" style="border-radius: 12px; border: 1px solid #e2e8f0 !important; min-height: 520px;">
+      <div class="card border-0 shadow-sm bg-white d-flex flex-column" style="border-radius: 12px; border: 1px solid #e2e8f0 !important; min-height: 540px;">
         
         <!-- Chat Message Area -->
         <div class="card-body p-4 overflow-y-auto flex-grow-1" id="chatArea" style="max-height: 480px;">
@@ -52,7 +89,7 @@
             </div>
             <div class="p-3 bg-light rounded-3 border" style="max-width: 85%;">
               <p class="mb-1 text-dark small" style="line-height: 1.5;">
-                Namaste! I am your KrishiMitra Agronomy Assistant. Ask me anything about crop diseases, pest remedies, fertilizer schedules, or farming advice. You can speak using the microphone or type below.
+                Namaste! I am your KrishiMitra Agronomy Assistant. Ask me anything about crop diseases, pest remedies, fertilizer schedules, or farming advice. You can speak into the live microphone, record a voice note, or upload an audio clip below.
               </p>
               <div class="d-flex gap-2 flex-wrap mt-2">
                 <button class="btn btn-outline-secondary btn-sm py-0 px-2" style="font-size: 0.75rem;" onclick="askPreset('How to control Paddy Blast disease?')">
@@ -69,20 +106,103 @@
           </div>
         </div>
 
-        <!-- Input Bar -->
-        <div class="p-3 border-top bg-light" style="border-radius: 0 0 12px 12px;">
-          <form id="askForm" onsubmit="handleSend(event)" class="d-flex gap-2">
-            <button type="button" class="btn btn-outline-secondary px-3" id="micBtn" onclick="toggleVoice()" title="Click to speak">
-              <i class="bi bi-mic-fill" id="micIcon"></i>
-            </button>
-            <input type="text" class="form-control" id="queryInput" placeholder="Type or speak your farming question..." autocomplete="off" required>
-            <button type="submit" class="btn btn-success px-4 fw-semibold" id="sendBtn">
-              <i class="bi bi-send-fill me-1"></i> Send
-            </button>
-          </form>
-          <div id="voiceStatus" class="small text-muted mt-1" style="font-size: 0.75rem; display: none;">
-            <span class="spinner-grow spinner-grow-sm text-danger me-1"></span> Listening... speak clearly into your microphone
+        <!-- Input Bar with Mode Switcher -->
+        <div class="border-top bg-light" style="border-radius: 0 0 12px 12px;">
+          
+          <!-- Mode Tabs: Live Mic/Text vs Audio Form -->
+          <ul class="nav nav-pills px-3 pt-2 small" id="inputModes" role="tablist">
+            <li class="nav-item me-2">
+              <button class="nav-link active py-1 px-3 small fw-semibold" id="tab-mic-text" data-bs-toggle="pill" data-bs-target="#mode-mic-text" type="button" role="tab">
+                <i class="bi bi-mic me-1"></i> Live Mic &amp; Text
+              </button>
+            </li>
+            <li class="nav-item">
+              <button class="nav-link py-1 px-3 small fw-semibold text-secondary" id="tab-audio-form" data-bs-toggle="pill" data-bs-target="#mode-audio-form" type="button" role="tab">
+                <i class="bi bi-file-earmark-music me-1"></i> Audio Clip / Voice Recording Form
+              </button>
+            </li>
+          </ul>
+
+          <div class="tab-content p-3">
+            
+            <!-- MODE 1: Live Mic & Text Input -->
+            <div class="tab-pane fade show active" id="mode-mic-text" role="tabpanel">
+              <form id="askForm" onsubmit="handleSend(event)" class="d-flex gap-2">
+                <button type="button" class="btn btn-outline-secondary px-3 position-relative" id="micBtn" onclick="toggleVoice()" title="Click to speak with microphone">
+                  <i class="bi bi-mic-fill" id="micIcon"></i>
+                </button>
+                <input type="text" class="form-control" id="queryInput" placeholder="Type or click the microphone to speak your question..." autocomplete="off">
+                <button type="submit" class="btn btn-success px-4 fw-semibold" id="sendBtn">
+                  <i class="bi bi-send-fill me-1"></i> Send
+                </button>
+              </form>
+
+              <!-- Live Speech Feedback Banner -->
+              <div id="voiceStatus" class="small text-muted mt-2 d-none align-items-center gap-2" style="font-size: 0.8rem;">
+                <div class="audio-wave">
+                  <span></span><span></span><span></span><span></span>
+                </div>
+                <span class="text-danger fw-semibold">Listening...</span>
+                <span id="interimTranscript" class="text-dark fst-italic">Speak clearly into your microphone...</span>
+                <button type="button" class="btn btn-sm btn-link text-danger p-0 ms-auto" onclick="stopVoice()">Stop</button>
+              </div>
+
+              <!-- Permission / Error Notification -->
+              <div id="voiceErrorAlert" class="alert alert-warning py-1 px-2 mt-2 small d-none" style="font-size: 0.78rem;">
+                <i class="bi bi-exclamation-triangle me-1 text-warning"></i>
+                <span id="voiceErrorMessage">Microphone issue</span>
+              </div>
+            </div>
+
+            <!-- MODE 2: Audio Form (Record or Upload Audio File) -->
+            <div class="tab-pane fade" id="mode-audio-form" role="tabpanel">
+              <form id="audioUploadForm" onsubmit="handleAudioFormSend(event)">
+                <div class="row g-2 align-items-center">
+                  <!-- Voice Recorder Button -->
+                  <div class="col-sm-auto">
+                    <button type="button" class="btn btn-outline-danger btn-sm px-3 py-2 fw-semibold" id="btnRecordClip" onclick="toggleClipRecording()">
+                      <i class="bi bi-record-circle me-1" id="recordIcon"></i> <span id="recordLabel">Record Voice Note</span>
+                    </button>
+                  </div>
+
+                  <!-- File Picker for Audio -->
+                  <div class="col-sm">
+                    <input type="file" class="form-control form-control-sm" id="audioFileInput" accept="audio/*,.mp3,.wav,.m4a,.ogg,.webm" onchange="handleAudioFileSelect(this)">
+                  </div>
+
+                  <!-- Submit Audio Form Button -->
+                  <div class="col-sm-auto">
+                    <button type="submit" class="btn btn-success btn-sm px-4 py-2 fw-semibold" id="btnSubmitAudio" disabled>
+                      <i class="bi bi-cloud-arrow-up me-1"></i> Send Voice Question
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Recording Status & Preview Player -->
+                <div id="recordingStatusBox" class="mt-2 p-2 bg-white rounded border d-none">
+                  <div class="d-flex align-items-center justify-content-between mb-1">
+                    <div class="d-flex align-items-center gap-2 small">
+                      <span class="spinner-grow spinner-grow-sm text-danger" id="recordingSpinner"></span>
+                      <strong class="text-danger" id="recordingText">Recording voice note...</strong>
+                      <span class="badge bg-light text-dark border font-monospace" id="recordTimer">00:00</span>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-danger py-0 px-2" id="btnStopRecord" onclick="stopClipRecording()">
+                      <i class="bi bi-stop-circle me-1"></i> Done
+                    </button>
+                  </div>
+                  <!-- Audio Player Preview -->
+                  <div id="audioPreviewBox" class="mt-2 d-none">
+                    <audio id="audioPreviewPlayer" controls class="w-100" style="height: 34px;"></audio>
+                    <div class="small text-muted mt-1" style="font-size: 0.75rem;">
+                      <i class="bi bi-check-circle text-success me-1"></i> Audio captured. Click <strong>"Send Voice Question"</strong> above to process with Gemini AI.
+                    </div>
+                  </div>
+                </div>
+              </form>
+            </div>
+
           </div>
+
         </div>
 
       </div>
@@ -112,25 +232,66 @@
 </div>
 
 <script>
+// ─────────────────────────────────────────────────────────────────────────────
+// 1. LIVE SPEECH-TO-TEXT (Web Speech API)
+// ─────────────────────────────────────────────────────────────────────────────
 let recognition = null;
-let isRecording = false;
+let isVoiceListening = false;
 
-// Initialize Speech Recognition if supported
 if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
   const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
   recognition = new SpeechRec();
   recognition.continuous = false;
-  recognition.interimResults = false;
+  recognition.interimResults = true;
+  recognition.maxAlternatives = 1;
 
-  recognition.onresult = function(event) {
-    const transcript = event.results[0][0].transcript;
-    document.getElementById('queryInput').value = transcript;
-    stopVoice();
-    document.getElementById('askForm').dispatchEvent(new Event('submit'));
+  recognition.onstart = function() {
+    isVoiceListening = true;
+    const micBtn = document.getElementById('micBtn');
+    micBtn.classList.remove('btn-outline-secondary');
+    micBtn.classList.add('btn-danger', 'recording-pulse');
+    const statusBox = document.getElementById('voiceStatus');
+    statusBox.classList.remove('d-none');
+    statusBox.classList.add('d-flex');
+    document.getElementById('interimTranscript').innerText = 'Listening...';
+    hideVoiceError();
   };
 
-  recognition.onerror = function() {
+  recognition.onresult = function(event) {
+    let interim = '';
+    let finalTranscript = '';
+
+    for (let i = event.resultIndex; i < event.results.length; ++i) {
+      const part = event.results[i][0].transcript;
+      if (event.results[i].isFinal) {
+        finalTranscript += part;
+      } else {
+        interim += part;
+      }
+    }
+
+    if (interim) {
+      document.getElementById('interimTranscript').innerText = `"${interim}"`;
+      document.getElementById('queryInput').value = interim;
+    }
+
+    if (finalTranscript) {
+      document.getElementById('queryInput').value = finalTranscript;
+      stopVoice();
+      // Submit query directly
+      submitQuery(finalTranscript);
+    }
+  };
+
+  recognition.onerror = function(event) {
     stopVoice();
+    let msg = "Voice recognition error (" + event.error + ").";
+    if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+      msg = "Microphone access blocked. Please allow microphone permission in your browser or use the Audio Form tab.";
+    } else if (event.error === 'no-speech') {
+      msg = "No speech detected. Please speak clearly into your microphone.";
+    }
+    showVoiceError(msg);
   };
 
   recognition.onend = function() {
@@ -140,42 +301,245 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
 
 function toggleVoice() {
   if (!recognition) {
-    alert("Speech recognition is not supported in this browser. Please use Chrome or Edge.");
+    showVoiceError("Web Speech API is not supported in this browser. Please switch to the 'Audio Clip / Voice Recording Form' tab above to record or upload your audio.");
     return;
   }
-  if (!isRecording) {
+  if (!isVoiceListening) {
     const lang = document.getElementById('voiceLang').value;
     recognition.lang = lang;
-    recognition.start();
-    isRecording = true;
-    document.getElementById('micBtn').classList.remove('btn-outline-secondary');
-    document.getElementById('micBtn').classList.add('btn-danger');
-    document.getElementById('voiceStatus').style.display = 'block';
+    try {
+      recognition.start();
+    } catch(err) {
+      showVoiceError("Could not start microphone: " + err.message);
+    }
   } else {
     stopVoice();
   }
 }
 
 function stopVoice() {
-  if (recognition && isRecording) {
-    recognition.stop();
+  if (recognition && isVoiceListening) {
+    try { recognition.stop(); } catch(e) {}
   }
-  isRecording = false;
-  document.getElementById('micBtn').classList.remove('btn-danger');
-  document.getElementById('micBtn').classList.add('btn-outline-secondary');
-  document.getElementById('voiceStatus').style.display = 'none';
+  isVoiceListening = false;
+  const micBtn = document.getElementById('micBtn');
+  micBtn.classList.remove('btn-danger', 'recording-pulse');
+  micBtn.classList.add('btn-outline-secondary');
+  const statusBox = document.getElementById('voiceStatus');
+  statusBox.classList.remove('d-flex');
+  statusBox.classList.add('d-none');
 }
 
+function showVoiceError(msg) {
+  const alertEl = document.getElementById('voiceErrorAlert');
+  document.getElementById('voiceErrorMessage').innerText = msg;
+  alertEl.classList.remove('d-none');
+}
+
+function hideVoiceError() {
+  document.getElementById('voiceErrorAlert').classList.add('d-none');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 2. AUDIO FORM & MEDIA RECORDER (Voice Clip Recording & Upload)
+// ─────────────────────────────────────────────────────────────────────────────
+let mediaRecorder = null;
+let recordedAudioChunks = [];
+let recordedAudioBlob = null;
+let recordTimerInterval = null;
+let recordSeconds = 0;
+
+async function toggleClipRecording() {
+  if (mediaRecorder && mediaRecorder.state === 'recording') {
+    stopClipRecording();
+  } else {
+    startClipRecording();
+  }
+}
+
+async function startClipRecording() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    recordedAudioChunks = [];
+    recordedAudioBlob = null;
+    
+    // Choose optimal mimeType supported by browser
+    let options = { mimeType: 'audio/webm' };
+    if (!MediaRecorder.isTypeSupported('audio/webm')) {
+      if (MediaRecorder.isTypeSupported('audio/mp4')) {
+        options = { mimeType: 'audio/mp4' };
+      } else if (MediaRecorder.isTypeSupported('audio/ogg')) {
+        options = { mimeType: 'audio/ogg' };
+      } else {
+        options = {};
+      }
+    }
+
+    mediaRecorder = new MediaRecorder(stream, options);
+
+    mediaRecorder.ondataavailable = function(e) {
+      if (e.data && e.data.size > 0) {
+        recordedAudioChunks.push(e.data);
+      }
+    };
+
+    mediaRecorder.onstop = function() {
+      stream.getTracks().forEach(track => track.stop());
+      const mime = mediaRecorder.mimeType || 'audio/webm';
+      recordedAudioBlob = new Blob(recordedAudioChunks, { type: mime });
+
+      // Show preview
+      const previewPlayer = document.getElementById('audioPreviewPlayer');
+      previewPlayer.src = URL.createObjectURL(recordedAudioBlob);
+      document.getElementById('audioPreviewBox').classList.remove('d-none');
+      document.getElementById('btnSubmitAudio').disabled = false;
+      document.getElementById('recordingSpinner').classList.add('d-none');
+      document.getElementById('recordingText').innerText = "Voice recording ready!";
+      document.getElementById('btnRecordClip').classList.remove('btn-danger', 'recording-pulse');
+      document.getElementById('btnRecordClip').classList.add('btn-outline-danger');
+      document.getElementById('recordLabel').innerText = "Re-record Voice";
+    };
+
+    mediaRecorder.start();
+    
+    // UI state updates
+    document.getElementById('recordingStatusBox').classList.remove('d-none');
+    document.getElementById('audioPreviewBox').classList.add('d-none');
+    document.getElementById('recordingSpinner').classList.remove('d-none');
+    document.getElementById('recordingText').innerText = "Recording voice note...";
+    document.getElementById('btnRecordClip').classList.remove('btn-outline-danger');
+    document.getElementById('btnRecordClip').classList.add('btn-danger', 'recording-pulse');
+    document.getElementById('recordLabel').innerText = "Stop Recording";
+    document.getElementById('btnSubmitAudio').disabled = true;
+
+    // Timer
+    recordSeconds = 0;
+    document.getElementById('recordTimer').innerText = "00:00";
+    clearInterval(recordTimerInterval);
+    recordTimerInterval = setInterval(() => {
+      recordSeconds++;
+      const mins = String(Math.floor(recordSeconds / 60)).padStart(2, '0');
+      const secs = String(recordSeconds % 60).padStart(2, '0');
+      document.getElementById('recordTimer').innerText = `${mins}:${secs}`;
+    }, 1000);
+
+  } catch(err) {
+    alert("Could not access microphone: " + err.message + ". Please grant microphone permission in your browser.");
+  }
+}
+
+function stopClipRecording() {
+  clearInterval(recordTimerInterval);
+  if (mediaRecorder && mediaRecorder.state === 'recording') {
+    mediaRecorder.stop();
+  }
+}
+
+function handleAudioFileSelect(input) {
+  if (input.files && input.files[0]) {
+    const file = input.files[0];
+    recordedAudioBlob = file;
+    const previewPlayer = document.getElementById('audioPreviewPlayer');
+    previewPlayer.src = URL.createObjectURL(file);
+    document.getElementById('recordingStatusBox').classList.remove('d-none');
+    document.getElementById('audioPreviewBox').classList.remove('d-none');
+    document.getElementById('recordingSpinner').classList.add('d-none');
+    document.getElementById('recordingText').innerText = `Selected: ${file.name}`;
+    document.getElementById('btnSubmitAudio').disabled = false;
+  }
+}
+
+// Handle submission of Audio Form
+async function handleAudioFormSend(e) {
+  e.preventDefault();
+  if (!recordedAudioBlob) {
+    alert("Please record or select an audio file first.");
+    return;
+  }
+
+  const lang = document.getElementById('voiceLang').value;
+  const formData = new FormData();
+  formData.append('audio', recordedAudioBlob, 'voice_query.webm');
+  formData.append('lang', lang);
+
+  const chatArea = document.getElementById('chatArea');
+
+  // Display user voice message in chat
+  const audioBlobUrl = URL.createObjectURL(recordedAudioBlob);
+  const userHtml = `
+    <div class="d-flex justify-content-end mb-3">
+      <div class="p-3 bg-success text-white rounded-3 shadow-sm" style="max-width: 80%;">
+        <div class="small fw-semibold mb-1"><i class="bi bi-mic me-1"></i> You (Voice Question)</div>
+        <audio src="${audioBlobUrl}" controls class="w-100 mt-1" style="height: 30px;"></audio>
+      </div>
+    </div>
+  `;
+  chatArea.innerHTML += userHtml;
+  chatArea.scrollTop = chatArea.scrollHeight;
+
+  // Append temporary loading message
+  const loadingId = 'loading-' + Date.now();
+  const loadingHtml = `
+    <div class="d-flex gap-2 mb-3" id="${loadingId}">
+      <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 32px; height: 32px;">
+        <i class="bi bi-robot"></i>
+      </div>
+      <div class="p-3 bg-light rounded-3 border">
+        <span class="spinner-border spinner-border-sm text-success me-2"></span> Transcribing &amp; Analyzing voice with Gemini AI...
+      </div>
+    </div>
+  `;
+  chatArea.innerHTML += loadingHtml;
+  chatArea.scrollTop = chatArea.scrollHeight;
+
+  // Reset audio form
+  document.getElementById('btnSubmitAudio').disabled = true;
+
+  try {
+    const response = await fetch('/rag/ask_audio', {
+      method: 'POST',
+      body: formData
+    });
+    const data = await response.json();
+    document.getElementById(loadingId).remove();
+
+    renderAssistantResponse(data);
+
+    // If transcription returned, update display
+    if (data.transcript) {
+      chatArea.innerHTML += `
+        <div class="small text-muted text-end me-2 mb-2" style="font-size: 0.75rem;">
+          <i class="bi bi-chat-quote me-1"></i> Transcribed Speech: "<strong>${escapeHtml(data.transcript)}</strong>"
+        </div>
+      `;
+      chatArea.scrollTop = chatArea.scrollHeight;
+    }
+
+  } catch(err) {
+    document.getElementById(loadingId).remove();
+    chatArea.innerHTML += `<div class="alert alert-danger py-2 small mb-3">Could not process audio: ${err.message}</div>`;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 3. TEXT & GENERAL QUERY SUBMISSION
+// ─────────────────────────────────────────────────────────────────────────────
 function askPreset(question) {
   document.getElementById('queryInput').value = question;
-  document.getElementById('askForm').dispatchEvent(new Event('submit'));
+  submitQuery(question);
 }
 
-async function handleSend(e) {
+function handleSend(e) {
   e.preventDefault();
   const input = document.getElementById('queryInput');
   const query = input.value.trim();
   if (!query) return;
+  input.value = '';
+  submitQuery(query);
+}
+
+async function submitQuery(queryText) {
+  if (!queryText || !queryText.trim()) return;
 
   const chatArea = document.getElementById('chatArea');
 
@@ -184,12 +548,11 @@ async function handleSend(e) {
     <div class="d-flex justify-content-end mb-3">
       <div class="p-3 bg-success text-white rounded-3 shadow-sm" style="max-width: 80%;">
         <div class="small fw-semibold mb-1">You</div>
-        <div style="line-height: 1.4;">${escapeHtml(query)}</div>
+        <div style="line-height: 1.4;">${escapeHtml(queryText)}</div>
       </div>
     </div>
   `;
   chatArea.innerHTML += userHtml;
-  input.value = '';
   chatArea.scrollTop = chatArea.scrollHeight;
 
   // Append temporary loading message
@@ -211,37 +574,41 @@ async function handleSend(e) {
     const response = await fetch('/rag/ask', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ query: query })
+      body: JSON.stringify({ query: queryText })
     });
     const data = await response.json();
-
     document.getElementById(loadingId).remove();
 
-    const formattedAnswer = data.answer.replace(/\n/g, '<br>');
-    const botHtml = `
-      <div class="d-flex gap-2 mb-3">
-        <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 32px; height: 32px;">
-          <i class="bi bi-robot"></i>
-        </div>
-        <div class="p-3 bg-light rounded-3 border" style="max-width: 85%;">
-          <div class="d-flex justify-content-between align-items-center mb-1">
-            <span class="badge bg-success-subtle text-success border small">${data.provider || 'KrishiMitra AI'}</span>
-            <button class="btn btn-sm btn-link text-muted p-0" onclick="speakText(this)" data-text="${escapeHtml(data.answer)}" title="Read Aloud">
-              <i class="bi bi-volume-up fs-6"></i>
-            </button>
-          </div>
-          <div class="small text-dark" style="line-height: 1.6;">${formattedAnswer}</div>
-          ${data.sources && data.sources.length ? `<div class="mt-2 pt-2 border-top text-muted" style="font-size:0.72rem;"><i class="bi bi-shield-check text-success me-1"></i>Sources: ${data.sources.map(s => typeof s === 'string' ? s : s.title).join(' &bull; ')}</div>` : ''}
-        </div>
-      </div>
-    `;
-    chatArea.innerHTML += botHtml;
-    chatArea.scrollTop = chatArea.scrollHeight;
+    renderAssistantResponse(data);
 
   } catch(err) {
     document.getElementById(loadingId).remove();
     chatArea.innerHTML += `<div class="alert alert-danger py-2 small mb-3">Could not fetch answer: ${err.message}</div>`;
   }
+}
+
+function renderAssistantResponse(data) {
+  const chatArea = document.getElementById('chatArea');
+  const formattedAnswer = (data.answer || '').replace(/\n/g, '<br>');
+  const botHtml = `
+    <div class="d-flex gap-2 mb-3">
+      <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 32px; height: 32px;">
+        <i class="bi bi-robot"></i>
+      </div>
+      <div class="p-3 bg-light rounded-3 border" style="max-width: 85%;">
+        <div class="d-flex justify-content-between align-items-center mb-1">
+          <span class="badge bg-success-subtle text-success border small">${data.provider || 'KrishiMitra AI'}</span>
+          <button class="btn btn-sm btn-link text-muted p-0" onclick="speakText(this)" data-text="${escapeHtml(data.answer || '')}" title="Read Aloud">
+            <i class="bi bi-volume-up fs-6"></i>
+          </button>
+        </div>
+        <div class="small text-dark" style="line-height: 1.6;">${formattedAnswer}</div>
+        ${data.sources && data.sources.length ? `<div class="mt-2 pt-2 border-top text-muted" style="font-size:0.72rem;"><i class="bi bi-shield-check text-success me-1"></i>Sources: ${data.sources.map(s => typeof s === 'string' ? s : s.title).join(' &bull; ')}</div>` : ''}
+      </div>
+    </div>
+  `;
+  chatArea.innerHTML += botHtml;
+  chatArea.scrollTop = chatArea.scrollHeight;
 }
 
 function speakText(btn) {

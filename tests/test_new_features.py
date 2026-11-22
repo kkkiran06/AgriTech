@@ -79,6 +79,14 @@ def test_rag_ask_endpoint(client):
     assert 'answer' in data
     assert len(data['answer']) > 0
 
+def test_rag_ask_audio_endpoint(client):
+    import io
+    dummy_wav = io.BytesIO(b"RIFF....WAVEfmt ....data....")
+    res = client.post('/rag/ask_audio', data={'audio': (dummy_wav, 'test.wav')}, content_type='multipart/form-data')
+    assert res.status_code == 200
+    data = res.get_json()
+    assert 'answer' in data
+
 
 # ── 2. Community Forum Tests ────────────────────────────────────
 def test_community_page_renders(client):
